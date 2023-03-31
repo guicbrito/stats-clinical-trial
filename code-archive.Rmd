@@ -1,0 +1,67 @@
+---
+title: "Code Archive"
+output: html_notebook
+editor_options: 
+  chunk_output_type: inline
+---
+
+## Save grouped data to csv file
+
+```{r Longitudinal}
+summarise(grouped_longit,
+          SUV = mean(SUV, na.rm = TRUE),
+          .groups = "keep") %>%
+    pivot_wider(names_from = age, values_from = SUV) %>%
+    write_csv("../data/longit-data.csv")
+```
+
+```{r Challenge}
+summarise(grouped_challenge, SUV = mean(SUV, na.rm = TRUE),
+          .groups = "keep") %>%
+    pivot_wider(names_from = group, values_from = SUV) %>%
+    write_csv("../data/challenge-data.csv")
+
+```
+
+filter(tidy_cef, area %in% c("HippocampusAnteroDorsal_L",
+
+"HippocampusAnteroDorsal_R",
+
+"HippocampusPosterior_L",
+
+"HippocampusPosterior_R")) %\>%
+
+```{r}
+
+library(fda)
+library(tidyverse)
+library(plotly)
+
+
+
+df_1 <- df %>% select(!c(ID,Curve)) %>% unnest_longer(Time) 
+df_2 <- df %>% select(!c(ID,Time)) %>% unnest_longer(Curve)
+ID <- sort(rep(1:n_curves,n_points))
+df_l <- cbind(ID,df_1,df_2)
+p <- ggplot(df_l, aes(x = Time, y = Curve, group = ID, col = ID)) +
+      geom_line()
+
+```
+
+```{r}
+W_mean <- mean.fd(W.obj)
+W_sd <- std.fd(W.obj)
+# Create objects for the standard upper and lower standard deviation
+SE_u <- fd(basisobj = basis)
+SE_l <- fd(basisobj = basis)
+# Fill in the sd values
+SE_u$coefs <- W_mean$coefs +  1.96 * W_sd$coefs/sqrt(n_curves) 
+SE_l$coefs <- W_mean$coefs -  1.96 * W_sd$coefs/sqrt(n_curves)
+
+plot(W.obj, xlab="Time", ylab="", lty = 1)
+## [1] "done"
+title(main = "Smoothed Curves")
+lines(SE_u, lwd = 3, lty = 3)
+lines(SE_l, lwd = 3, lty = 3)
+lines(W_mean,  lwd = 3)
+```

@@ -1,0 +1,291 @@
+---
+title: "pet-fdg-ageing-analysis"
+author: "Guilherme Camargo Brito"
+date: "09/06/2021"
+output:
+  html_notebook:
+    toc: yes
+    fig_caption: yes
+    fig_width: 12
+    fig_height: 9
+    toc_depth: 4
+  html_document:
+    toc: yes
+    fig_caption: yes
+editor_options:
+  chunk_output_type: console
+---
+
+# 18F-FDG PET Data Analysis for Ageing Longitudinal Rat Cohort
+
+## Data Wrangling
+
+### load dependencies
+
+if error installing, use:
+
+`install.packages(c("packages"),type="win.binary")`
+
+where "packages" is replaced with the failed packages
+
+```{r echo=TRUE}
+# Manually install Rtools binary first https://cran.r-project.org/bin/windows/Rtools/
+#
+# Run the line below to set Rtools PATH
+# writeLines('PATH="${RTOOLS40_HOME}\\usr\\bin;${PATH}"', con = "~/.Renviron")
+#
+# done!
+
+library(renv)
+library(rio) # for data import
+library(tidyverse)
+library(rmarkdown)
+library(knitr)
+library(ggstatsplot, quietly = T)
+library(geepack)
+library(foreach)
+library(doParallel)
+library(progress)
+library(styler)
+library(bibliometrix)
+library(xfun)
+library(usethis)
+library()
+# https://pak.r-lib.org/ <- better installer
+library(fs)
+library(scales)
+library(googlesheets4)
+
+registerDoParallel(cores = 14)
+getDoParWorkers()
+
+# optional:
+library(pbapply)
+library(future)
+library(future.apply)
+```
+
+### Load data
+
+```{r message=FALSE}
+all_data <- import("../data/All-available-data-2.csv",
+                   keepLeadingZeros = TRUE,
+                   setclass = "tbl_df"
+                   )
+# proj_root() https://github.com/yihui/xfun
+```
+
+### Tidy the dataset
+
+```{r}
+ pivot_longer(all_data, 7:length(all_data), "area", values_to = "SUV") %>%
+  assign("tidy_dataset",.,pos = 1) %>%
+  export(.,'../data/tidy-data.csv')
+
+```
+
+### Filter data for iterations
+
+```{r filter dataset}
+
+right_side <- filter(tidy_dataset, endsWith(tidy_dataset$area, "_R"))
+
+left_side <- filter(tidy_dataset, endsWith(tidy_dataset$area, "_L"))
+
+mid_line <- filter(tidy_dataset, !(endsWith(tidy_dataset$area, ("_R")) |
+  endsWith(tidy_dataset$area, ("_L"))))
+mid_line <- rename(mid_line, SUVm = SUV)
+
+
+SUV_avg <- mutate(right_side, SUVm = (SUV + left_side$SUV) / 2, .keep = "unused")
+
+SUV_avg <- mutate(SUV_avg, area = gsub("_R", "", SUV_avg$area))
+
+SUV_avg <- bind_rows(SUV_avg, mid_line)
+
+rm("mid_line")
+rm("left_side")
+rm("right_side")
+
+```
+
+### Levels
+
+```{r}
+
+structures <- levels(factor(SUV_avg$area))
+
+```
+
+### sd
+
+```{r}
+
+ROIs_limbic <- c(
+  "HippocampusAnteroDorsal",
+  "HippocampusPosterior",
+
+  )
+
+ "CortexCingulate",
+  "CortexEntorhinal",
+  "Amygdala"
+
+ROIs_bg <- c(
+  "AcbCore/Shell",
+  "CaudatePutamen",
+  "Olfactory"
+  )
+
+ROIs_frontal <- c(
+  "CortexMotor",
+  "CortexFrontal",
+  "CortexMedialPrefrontal",
+  "CortexOrbitofrontal"
+  )
+
+ROIs_ref <- c(
+  "CB-grey",
+  "Pons"
+  )
+
+ROIs_indep <- c(
+  "VTA",
+  "Hypothalamus"
+)
+
+ROIs_areas <- c(ROIs_limbic)
+
+filt_SUV <- filter(SUV_avg, area %in% ROIs_areas)
+
+```
+
+### Split experiments
+
+```{r}
+SUV_challenge <- filter(filt_SUV,  (age == "02" | age == "22"))
+SUV_mino      <- filter(SUV_challenge, group != "cef")
+SUV_cef       <- filter(SUV_challenge, group != "mino")
+SUV_longit    <- filter(filt_SUV, !(age == "02" | age == "22"))
+```
+
+## Exploratory Data Analysis
+
+### Group data
+
+```{r}
+grouped_challenge <- group_by(SUV_challenge, group, age, area)
+
+grouped_longit <- group_by(SUV_longit, age, area)
+
+```
+
+### Plot the data
+
+```{r plot gg}
+ggplot(SUV_mino, aes(x = age, y = SUVm, color = age)) +
+  geom_boxplot() + facet_wrap(~area)
+```
+
+## GEE analysis
+
+geepack \#\#\#\# Run one of the following chunks:
+
+```{r Proper GEE analysis, eval=FALSE, include=FALSE}
+
+mod <- geeglm(data = tidy_cef,SUV ~ age , id = id_caixa, corstr = "ar1")
+
+```
+
+*OR*
+
+```{r Proper GEE analysis option 2, eval=FALSE, include=FALSE}
+mod <- geeglm(
+  SUV ~ group*age,
+  family = gaussian,
+  data = parent.frame(),
+  weights,
+  subset,
+  na.action,
+  start = NULL,
+  etastart,
+  mustart,
+  offset,
+  control = geese.control(...),
+  method = "glm.fit",
+  contrasts = NULL,
+  id,
+  waves = NULL,
+  zcor = NULL,
+  corstr = "independence",
+  scale.fix = FALSE,
+  scale.value = 1,
+  std.err = "san.se",
+  ...
+
+)
+```
+
+Now we ponder on how to analyze the data Candidate packages: Hmisc, rms,
+geepack, or ggstatsplot.
+
+## ggstatsplot
+
+### ggbetweenstats
+
+runs t-test if 2 group, otherwise anova (\>2)
+
+#### within
+
+```{r echo=TRUE}
+
+grouped_ggbetweenstats(SUV_cef,
+                          x = group,
+                          y = SUVm,
+                          grouping.var = age
+                          ) %>%
+        ggsave(
+            filename = "cef-vs-ct4.tif",
+            .,
+            device = "tiff",
+            path = "../figs/",
+            width = 12,
+            height = 6
+            )
+```
+
+```{r echo=TRUE}
+
+hpc <- filter(SUV_mino, area %in%  ROIs )
+
+  hpc %>%
+    ggbetweenstats( x = age,
+                       y = SUVm
+                       ) %>%
+    ggsave(
+        filename = "mino-vs-ct3.tif",
+        .,
+        device = "tiff",
+        path = "../figs/",
+        width = 12,
+        height = 6
+        )
+```
+
+```{r echo=TRUE}
+
+hpc <- filter(SUV_longit, area %in%  ROIs )
+
+  hpc %>%
+    ggbetweenstats( x = age,
+                       y = SUVm
+                       ) %>%
+    ggsave(
+        filename = "longit.tif",
+        .,
+        device = "tiff",
+        path = "../figs/",
+        width = 12,
+        height = 6
+        )
+```
