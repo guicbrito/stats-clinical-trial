@@ -1,7 +1,0 @@
-Variable1,Variable2,Test,Correlation,P.Value,Significance
-DNA_corrigido15x,Idade,pearson,0.18686028875585797,0.4883393766023191,-
-DNA_corrigido15x,Dias_internacao,spearman,0.27016918028914777,0.31153993778886946,-
-DNA_corrigido15x,IMC_absoluto,pearson,-0.0028064699228768477,0.9917698277146547,-
-DNA_corrigido15x,VEF1percprevist,spearman,-0.4562179307215767,0.0757025731007721,-
-DNA_corrigido15x,VO2mLkgminfinal,pearson,-0.18919925646363378,0.48281245379429105,-
-DNA_corrigido15x,ReservaVentilatoria,spearman,0.20176730486008837,0.4536399831662782,-

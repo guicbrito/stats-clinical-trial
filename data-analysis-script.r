@@ -28,7 +28,6 @@ data <- import("input/data.xlsx", setclass = "tibble", na = "NA") %>%
     setNames(iconv(colnames(.), from = "UTF-8", to = "ASCII//TRANSLIT")) %>%
     mutate(Categoria_Idade = if_else(Idade <= 20, "20_ou_menos", "acima_de_20"))
 
-
 shapiro_test <- function(data, vars) {
     data %>%
         select(all_of(vars)) %>%
@@ -36,10 +35,10 @@ shapiro_test <- function(data, vars) {
         group_by(Variable) %>%
         summarise(
             shapiro_w = shapiro.test(Value)$statistic,
-            shapiro_p = shapiro.test(Value)$p.value
+            shapiro_p = shapiro.test(Value)$p.value,
+            normality = if_else(shapiro.test(Value)$p.value > p.value, "parametric", "non-parametric")
         )
 }
-
 
 summarise_stats <- function(data, vars) {
     data %>%
@@ -51,6 +50,7 @@ summarise_stats <- function(data, vars) {
             mean = mean(Value, na.rm = TRUE),
             median = median(Value, na.rm = TRUE),
             sd = sd(Value, na.rm = TRUE),
+            se = sd(Value, na.rm = TRUE) / sqrt(length(Value)),
             iqr = IQR(Value, na.rm = TRUE)
         )
 }
@@ -60,6 +60,7 @@ calc_frequencies <- function(data, vars) {
         select(Grupo, all_of(vars)) %>%
         gather(Variable, Value, -Grupo) %>%
         count(Grupo, Variable, Value) %>%
+        group_by(Variable, Grupo) %>%
         mutate(
             Frequencia_relativa = n / sum(n),
             Frequencia_absoluta = n
@@ -84,10 +85,6 @@ calc_group_diff <- function(data, vars, normality_tests, p.value, group_var) {
     })
 }
 
-
-
-
-
 calc_correlations <- function(data, target_vars_correlations, normality_tests, p.value, parametric_corr_test, non_parametric_corr_test) {
     combn(target_vars_correlations, 2, simplify = FALSE) %>%
         map_df(function(pair) {
@@ -106,48 +103,18 @@ calc_correlations <- function(data, target_vars_correlations, normality_tests, p
         })
 }
 
-
 p.value <- 0.05
 parametric_corr_test <- "pearson"
 non_parametric_corr_test <- "spearman"
 parametric_diff_test <- "t-test"
 non_parametric_diff_test <- "wilcox"
 
-normality_tests <- shapiro_test(data, unlist(input_data$stats))
+normality_tests <- shapiro_test(data, unlist(input_data[names(input_data) != "frequencies"], use.names = FALSE) %>% unique())
 descriptive_stats <- summarise_stats(data, unlist(input_data$stats))
 frequencies <- calc_frequencies(data, unlist(input_data$frequencies))
 group_diff <- calc_group_diff(data, unlist(input_data$group_diff), normality_tests, p.value, "Grupo")
 age_group_diff <- calc_group_diff(data, unlist(input_data$age_diff), normality_tests, p.value, "Categoria_Idade")
 correlations <- calc_correlations(data, unlist(input_data$correlations), normality_tests, p.value, parametric_corr_test, non_parametric_corr_test)
-
-# Plots
-choose_plot_type <- function(variable, normality_tests, p.value) {
-    normality_test <- filter(normality_tests, Variable == variable)
-    is_normal <- normality_test$shapiro_p > p.value
-    if (is_normal) {
-        return("histogram")
-    } else {
-        return("boxplot")
-    }
-}
-
-
-normality_plot <- ggplot(normality_tests, aes(x = reorder(Variable, shapiro_p), y = shapiro_p)) +
-    geom_point(size = 3) +
-    geom_hline(yintercept = p.value, linetype = "dashed", color = "red") +
-    labs(title = "Shapiro-Wilk Normality Test", x = "Variable", y = "p-value") +
-    theme_minimal() +
-    theme(axis.text.x = element_text(angle = 45, hjust = 1))
-
-descriptive_stats_long <- descriptive_stats %>%
-    gather(key = "Statistic", value = "Value", -Variable)
-
-descriptive_stats_plot <- ggplot(descriptive_stats_long, aes(x = reorder(Variable, Value), y = Value, fill = Statistic)) +
-    geom_bar(stat = "identity", position = "dodge") +
-    labs(title = "Descriptive Statistics", x = "Variable", y = "Value") +
-    theme_minimal() +
-    theme(axis.text.x = element_text(angle = 45, hjust = 1))
-
 
 # Save data
 data_list <- list(
@@ -173,28 +140,3 @@ data_file_names <- c(
 for (i in seq_along(data_list)) {
     write_csv(data_list[[i]], paste0("output/", data_file_names[[i]]))
 }
-
-# Save plots
-save_plot <- function(plot, file_name, width = 10, height = 5, dpi = 300) {
-    ggsave(paste0("output/", file_name), plot, width = width, height = height, dpi = dpi, bg = "white")
-}
-
-plot_list <- list(
-    normality_plot,
-    descriptive_stats_plot
-    # frequencies_plot,
-    # group_diff_plot,
-    # age_group_diff_plot,
-    # correlations_plot
-)
-
-plot_file_names <- c(
-    "normality_plot.png",
-    "descriptive_stats_plot.png"
-    # "frequencies-plot.png",
-    # "group-differences-plot.png",
-    # "age-group-differences-plot.png",
-    # "correlations-plot.png"
-)
-
-mapply(save_plot, plot_list, plot_file_names)
