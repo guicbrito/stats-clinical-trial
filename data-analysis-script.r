@@ -40,6 +40,7 @@ shapiro_test <- function(data, vars) {
         )
 }
 
+
 summarise_stats <- function(data, vars) {
     data %>%
         select(all_of(vars)) %>%
@@ -53,6 +54,9 @@ summarise_stats <- function(data, vars) {
         )
 }
 
+
+
+
 calc_frequencies <- function(data, vars) {
     data %>%
         select(Grupo, all_of(vars)) %>%
@@ -64,6 +68,9 @@ calc_frequencies <- function(data, vars) {
         ) %>%
         select(Variable, Value, Grupo, Frequencia_absoluta, Frequencia_relativa)
 }
+
+
+
 
 calc_group_diff <- function(data, vars, normality_tests, p.value, group_var) {
     map_df(vars, function(var) {
@@ -81,6 +88,9 @@ calc_group_diff <- function(data, vars, normality_tests, p.value, group_var) {
         )
     })
 }
+
+
+
 
 
 calc_correlations <- function(data, target_vars_correlations, normality_tests, p.value, parametric_corr_test, non_parametric_corr_test) {
@@ -101,6 +111,10 @@ calc_correlations <- function(data, target_vars_correlations, normality_tests, p
         })
 }
 
+
+
+
+
 p.value <- 0.05
 parametric_corr_test <- "pearson"
 non_parametric_corr_test <- "spearman"
@@ -114,6 +128,69 @@ group_diff <- calc_group_diff(data, unlist(input_data$group_diff), normality_tes
 age_group_diff <- calc_group_diff(data, unlist(input_data$age_diff), normality_tests, p.value, "Categoria_Idade")
 correlations <- calc_correlations(data, unlist(input_data$correlations), normality_tests, p.value, parametric_corr_test, non_parametric_corr_test)
 
+
+# Plots
+choose_plot_type <- function(variable, normality_tests, p.value) {
+    normality_test <- filter(normality_tests, Variable == variable)
+    is_normal <- normality_test$shapiro_p > p.value
+    if (is_normal) {
+        return("histogram")
+    } else {
+        return("boxplot")
+    }
+}
+
+normality_plot <- ggplot(normality_tests, aes(x = reorder(Variable, shapiro_p), y = shapiro_p)) +
+    geom_point(size = 3) +
+    geom_hline(yintercept = p.value, linetype = "dashed", color = "red") +
+    labs(title = "Shapiro-Wilk Normality Test", x = "Variable", y = "p-value") +
+    theme_minimal() +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+descriptive_stats_long <- descriptive_stats %>%
+    gather(key = "Statistic", value = "Value", -Variable) %>%
+    left_join(descriptive_stats %>% select(Variable, sd), by = "Variable")
+
+descriptive_stats_plot <- descriptive_stats_long %>%
+    ggplot(aes(x = Variable, y = Value, fill = Statistic)) +
+    geom_bar(stat = "identity", position = position_dodge()) +
+    geom_errorbar(aes(ymin = Value - sd, ymax = Value + sd), width = 0.2, position = position_dodge(0.9)) +
+    labs(title = "Descriptive Statistics", x = "Variable", y = "Value") +
+    theme_minimal() +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 12), axis.text.y = element_text(size = 12), legend.text = element_text(size = 12)) +
+    scale_fill_brewer(palette = "Set1")
+
+
+frequencies_plot <- ggplot(frequencies, aes(x = Value, y = Frequencia_relativa, fill = Grupo)) +
+    geom_bar(stat = "identity", position = "dodge") +
+    facet_wrap(~Variable, scales = "free_x") +
+    labs(title = "Frequencies by Group", x = "Value", y = "Relative Frequency") +
+    theme_minimal() +
+    scale_fill_brewer(palette = "Set1")
+
+group_diff_plot <- ggplot(group_diff, aes(x = Variable, y = p.value, fill = Test)) +
+    geom_bar(stat = "identity") +
+    geom_hline(yintercept = p.value, linetype = "dashed", color = "red") +
+    labs(title = "Group Differences", x = "Variable", y = "p-value") +
+    theme_minimal() +
+    scale_fill_brewer(palette = "Set1")
+
+age_group_diff_plot <- ggplot(age_group_diff, aes(x = Variable, y = p.value, fill = Test)) +
+    geom_bar(stat = "identity") +
+    geom_hline(yintercept = p.value, linetype = "dashed", color = "red") +
+    labs(title = "Age Group Differences", x = "Variable", y = "p-value") +
+    theme_minimal() +
+    scale_fill_brewer(palette = "Set1")
+
+correlations_plot <- ggplot(correlations, aes(x = Variable1, y = Variable2, fill = Correlation, label = round(Correlation, 2))) +
+    geom_tile() +
+    geom_text(size = 4, color = "black") +
+    labs(title = "Correlations", x = "Variable 1", y = "Variable 2") +
+    theme_minimal() +
+    scale_fill_gradient2(low = "blue", high = "red", mid = "white", midpoint = 0, limit = c(-1, 1), name = "Correlation")
+
+
+# Save data
 data_list <- list(
     normality_tests,
     age_group_diff,
@@ -124,7 +201,7 @@ data_list <- list(
     correlations
 )
 
-file_names <- c(
+data_file_names <- c(
     "normality-tests.csv",
     "sub20-vs-above20-differences.csv",
     "descriptive-stats.csv",
@@ -135,5 +212,33 @@ file_names <- c(
 )
 
 for (i in seq_along(data_list)) {
-    write_csv(data_list[[i]], paste0("output/", file_names[[i]]))
+    write_csv(data_list[[i]], paste0("output/", data_file_names[[i]]))
 }
+
+# Save plots
+save_plot <- function(plot, file_name, width = 10, height = 5, dpi = 300) {
+    ggsave(file_name, plot, width = width, height = height, dpi = dpi, bg = "white")
+}
+
+plot_list <- list(
+    normality_plot,
+    descriptive_stats_plot,
+    frequencies_plot,
+    group_diff_plot,
+    age_group_diff_plot,
+    correlations_plot
+)
+
+plot_file_names <- c(
+    "normality_plot.png",
+    "descriptive_stats_plot.png",
+    "frequencies-plot.png",
+    "group-differences-plot.png",
+    "age-group-differences-plot.png",
+    "correlations-plot.png"
+)
+
+print(plot_list[1])
+print(plot_file_names)
+
+mapply(save_plot, plot_list, plot_file_names)
