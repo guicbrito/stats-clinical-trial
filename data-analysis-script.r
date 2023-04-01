@@ -20,9 +20,9 @@ read_input <- function(file_path) {
 ## Read input data and target variable files
 data <- import("input/data.xlsx", setclass = "tibble", na = "NA")
 target_vars_stats <- read_input("input/target-variables-descriptive-stats.csv")
-target_vars_frequencies <- read_input("input/target-variables-frequecies.csv")
+target_vars_frequencies <- read_input("input/target-variables-frequencies.csv")
 target_vars_group_differences <- read_input("input/target-variables-group-differences.csv")
-target_vars_correlations <- read_input("input/target-variables-corrolations.csv")
+target_vars_correlations <- read_input("input/target-variables-correlations.csv")
 target_vars_age_difference <- read_input("input/target-variables-age-differences.csv")
 
 # Convert column names to ASCII
@@ -47,9 +47,9 @@ data_with_age_category <- data %>%
     select(-age_category_new)
 
 ## Descriptive statistics
-shapiro_test <- function(data, target_vars_stats, p.value) {
+shapiro_test <- function(data, vars) {
     data %>%
-        select(all_of(target_vars_stats)) %>%
+        select(all_of(vars)) %>%
         gather(Variable, Value) %>%
         group_by(Variable) %>%
         summarise(
@@ -58,9 +58,9 @@ shapiro_test <- function(data, target_vars_stats, p.value) {
         )
 }
 
-calculate_descriptive_stats <- function(data, target_vars_stats) {
+calculate_descriptive_stats <- function(data, vars) {
     data %>%
-        select(all_of(target_vars_stats)) %>%
+        select(all_of(vars)) %>%
         gather(Variable, Value) %>%
         group_by(Variable) %>%
         summarise(
@@ -89,90 +89,89 @@ calc_frequencies <- function(data, target_vars_frequencies) {
 
 ## Group differences
 calc_group_differences <- function(data, vars, normality_tests, p.value) {
-    group_diff_results <- lapply(vars, function(var) {
+    lapply(vars, function(var) {
         normality_test <- filter(normality_tests, Variable == var)
         is_normal <- normality_test$shapiro_p > p.value
-
-        if (is_normal) {
-            # Perform t-test
-            test_result <- t.test(data[[var]] ~ data$Grupo)
+        test_result <- if (is_normal) t.test(data[[var]] ~ data$Grupo) else wilcox.test(data[[var]] ~ data$Grupo, conf.int = TRUE)
+        if (test_result$p.value < p.value) {
+            signif <- "*"
         } else {
-            # Perform Wilcoxon rank-sum test
-            test_result <- wilcox.test(data[[var]] ~ data$Grupo)
+            signif <- "-"
         }
-
         return(list(
             Variable = var,
-            Test = ifelse(is_normal, parametric_diff_test, non_parametric_diff_test),
+            Test = ifelse(is_normal, "t-test", "wilcox"),
             Statistic = test_result$statistic,
-            P.Value = test_result$p.value
+            p.value = test_result$p.value,
+            Significance = signif,
+            CI_min = test_result$conf.int[1],
+            CI_max = test_result$conf.int[2]
         ))
-    })
-
-    return(do.call(rbind.data.frame, group_diff_results))
+    }) %>% do.call(rbind.data.frame, .)
 }
-
-
-
-## Correlation matrix
-calc_correlations <- function(data, target_vars_correlations, normality_tests, p.value) {
-    correlations_results <- lapply(target_vars_correlations, function(var1) {
-        lapply(target_vars_correlations, function(var2) {
-            if (var1 == var2) {
-                return(NULL)
-            }
-
-            normality_test_var1 <- filter(normality_tests, Variable == var1)
-            normality_test_var2 <- filter(normality_tests, Variable == var2)
-            is_normal_var1 <- normality_test_var1$shapiro_p > p.value
-            is_normal_var2 <- normality_test_var2$shapiro_p > p.value
-
-            if (is_normal_var1 && is_normal_var2) {
-                # Perform Pearson correlation
-                corr_result <- cor.test(data[[var1]], data[[var2]], method = parametric_corr_test)
-            } else {
-                # Perform Spearman correlation
-                corr_result <- cor.test(data[[var1]], data[[var2]], method = non_parametric_corr_test)
-            }
-
-            return(list(
-                Variable1 = var1,
-                Variable2 = var2,
-                Test = ifelse(is_normal_var1 && is_normal_var2, parametric_corr_test, non_parametric_corr_test),
-                Correlation = corr_result$estimate,
-                P.Value = corr_result$p.value
-            ))
-        })
-    })
-
-    return(do.call(rbind.data.frame, unlist(correlations_results, recursive = FALSE)))
-}
-
 
 ## Age group differences
-calc_age_group_diff <- function(data_with_age_category, vars, normality_tests, p.value) {
+calc_age_group_diff <- function(data_with_age_category, vars, normality_tests, p.value, parametric_diff_test, non_parametric_diff_test) {
     age_group_diff_results <- lapply(vars, function(var) {
         normality_test <- filter(normality_tests, Variable == var)
         is_normal <- normality_test$shapiro_p > p.value
 
         if (is_normal) {
-            # Perform t-test
             test_result <- t.test(data_with_age_category[[var]] ~ data_with_age_category$Categoria_Idade)
         } else {
-            # Perform Wilcoxon rank-sum test
-            test_result <- wilcox.test(data_with_age_category[[var]] ~ data_with_age_category$Categoria_Idade)
+            test_result <- wilcox.test(data_with_age_category[[var]] ~ data_with_age_category$Categoria_Idade, conf.int = TRUE)
+        }
+        if (test_result$p.value < p.value) {
+            signif <- "*"
+        } else {
+            signif <- "-"
         }
 
         return(list(
             Variable = var,
             Test = ifelse(is_normal, parametric_diff_test, non_parametric_diff_test),
             Statistic = test_result$statistic,
-            P.Value = test_result$p.value
+            p.value = test_result$p.value,
+            Significance = signif,
+            CI_min = test_result$conf.int[1],
+            CI_max = test_result$conf.int[2]
         ))
     })
 
     return(do.call(rbind.data.frame, age_group_diff_results))
 }
+
+## Correlation matrix
+calc_correlations <- function(data, target_vars_correlations, normality_tests, p.value, parametric_corr_test, non_parametric_corr_test) {
+    calc_corr <- function(pair) {
+        Variable1 <- filter(normality_tests, Variable == pair[1])
+        Variable2 <- filter(normality_tests, Variable == pair[2])
+        is_normal_var1 <- Variable1$shapiro_p > p.value
+        is_normal_var2 <- Variable2$shapiro_p > p.value
+
+        corr_result <- if (is_normal_var1 && is_normal_var2) cor.test(data[[pair[1]]], data[[pair[2]]], method = parametric_corr_test) else cor.test(data[[pair[1]]], data[[pair[2]]], method = non_parametric_corr_test)
+
+        if (corr_result$p.value < p.value) {
+            signif <- "*"
+        } else {
+            signif <- "-"
+        }
+
+        return(list(
+            Variable1 = pair[1],
+            Variable2 = pair[2],
+            Test = ifelse(is_normal_var1 && is_normal_var2, parametric_corr_test, non_parametric_corr_test),
+            Correlation = corr_result$estimate,
+            P.Value = corr_result$p.value,
+            Significance = signif
+        ))
+    }
+
+    combn(target_vars_correlations, 2, simplify = FALSE) %>%
+        map(calc_corr) %>%
+        do.call(rbind.data.frame, .)
+}
+
 
 
 # Export results to CSV files
@@ -184,20 +183,21 @@ export_results <- function(data_list, file_names) {
 
 # Define desired analysis
 p.value <- 0.05
-parametric_corr_test <- "pearson"
-non_parametric_corr_test <- "spearman"
-parametric_diff_test <- "t-test"
-non_parametric_diff_test <- "wilcox"
+parametric_corr_test <- "pearson" # Pearson's correlation coefficient
+non_parametric_corr_test <- "spearman" # Spearman's rank correlation coefficient
+parametric_diff_test <- "t-test" # Student's t-test for independent samples
+non_parametric_diff_test <- "wilcox" # Mann-Whitney U test/Wilcoxon rank-sum test
 
 # Run analysis
-normality_tests <- shapiro_test(data, target_vars_stats, p.value)
-age_group_diff <- suppressWarnings(calc_age_group_diff(data_with_age_category, target_vars_age_difference, normality_tests, p.value))
+normality_tests <- shapiro_test(data, target_vars_stats)
+age_group_diff <- calc_age_group_diff(data_with_age_category, target_vars_age_difference, normality_tests, p.value, parametric_diff_test, non_parametric_diff_test)
 descriptive_stats <- calculate_descriptive_stats(data, target_vars_stats)
 frequencies <- calc_frequencies(data, target_vars_frequencies)
-group_diff <- suppressWarnings(calc_group_differences(data, target_vars_group_differences, normality_tests, p.value))
-correlations <- suppressWarnings(calc_correlations(data, target_vars_correlations, normality_tests, p.value))
+group_diff <- calc_group_differences(data, target_vars_group_differences, normality_tests, p.value)
+correlations <- calc_correlations(data, target_vars_correlations, normality_tests, p.value, parametric_corr_test, non_parametric_corr_test)
 DNA_corrigido15x_correlations <- correlations %>%
     filter(Variable1 == "DNA_corrigido15x")
+
 # Export results
 data_list <- list(
     normality_tests,
@@ -209,7 +209,6 @@ data_list <- list(
     DNA_corrigido15x_correlations,
     correlations
 )
-
 file_names <- c(
     "normality-tests.csv",
     "sub20-vs-above20-differences.csv",
@@ -220,5 +219,4 @@ file_names <- c(
     "DNA_corrigido15x-correlations.csv",
     "variables-correlations.csv"
 )
-
 export_results(data_list, file_names)
