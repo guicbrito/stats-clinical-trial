@@ -1,4 +1,4 @@
-Consider the code below for running statistical data for a clinical trial. The plots I'm producing are not working, are not adequate for the data or are really bad and malformatted. Only the normality test is looking good so far. I need the plots to consider normality when deciding what type of visualization to produce. Tests with normality could use histograms, tests without normality could use boxplots. Let's work on the descriptive_stats_plot for now.
+Consider the code below for running statistical data for a clinical trial. The plots I'm producing should be informative and follow good practices. Produce the descriptive_stats_plot function. I need it to produce bar charts displaying the mean, and standard deviation for variables that have normality and boxplots displaying the median and interquartile range for variables that don't have normality. I need one chart for each variable, with adequate titles and labels. I also need the function to save the plots in the output folder.
 
 library(tidyverse)
 library(rio)
@@ -132,6 +132,16 @@ correlations <- calc_correlations(data, unlist(input_data$correlations), normali
 
 
 # Plots
+choose_plot_type <- function(variable, normality_tests, p.value) {
+    normality_test <- filter(normality_tests, Variable == variable)
+    is_normal <- normality_test$shapiro_p > p.value
+    if (is_normal) {
+        return("histogram")
+    } else {
+        return("boxplot")
+    }
+}
+
 normality_plot <- ggplot(normality_tests, aes(x = reorder(Variable, shapiro_p), y = shapiro_p)) +
     geom_point(size = 3) +
     geom_hline(yintercept = p.value, linetype = "dashed", color = "red") +
@@ -140,46 +150,8 @@ normality_plot <- ggplot(normality_tests, aes(x = reorder(Variable, shapiro_p), 
     theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
 descriptive_stats_long <- descriptive_stats %>%
-    gather(key = "Statistic", value = "Value", -Variable) %>%
-    left_join(descriptive_stats %>% select(Variable, sd), by = "Variable")
+    gather(key = "Statistic", value = "Value", -Variable)
 
-descriptive_stats_plot <- descriptive_stats_long %>%
-    ggplot(aes(x = Variable, y = Value, fill = Statistic)) +
-    geom_bar(stat = "identity", position = position_dodge()) +
-    geom_errorbar(aes(ymin = Value - sd, ymax = Value + sd), width = 0.2, position = position_dodge(0.9)) +
-    labs(title = "Descriptive Statistics", x = "Variable", y = "Value") +
-    theme_minimal() +
-    theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 12), axis.text.y = element_text(size = 12), legend.text = element_text(size = 12)) +
-    scale_fill_brewer(palette = "Set1")
-
-
-frequencies_plot <- ggplot(frequencies, aes(x = Value, y = Frequencia_relativa, fill = Grupo)) +
-    geom_bar(stat = "identity", position = "dodge") +
-    facet_wrap(~Variable, scales = "free_x") +
-    labs(title = "Frequencies by Group", x = "Value", y = "Relative Frequency") +
-    theme_minimal() +
-    scale_fill_brewer(palette = "Set1")
-
-group_diff_plot <- ggplot(group_diff, aes(x = Variable, y = p.value, fill = Test)) +
-    geom_bar(stat = "identity") +
-    geom_hline(yintercept = p.value, linetype = "dashed", color = "red") +
-    labs(title = "Group Differences", x = "Variable", y = "p-value") +
-    theme_minimal() +
-    scale_fill_brewer(palette = "Set1")
-
-age_group_diff_plot <- ggplot(age_group_diff, aes(x = Variable, y = p.value, fill = Test)) +
-    geom_bar(stat = "identity") +
-    geom_hline(yintercept = p.value, linetype = "dashed", color = "red") +
-    labs(title = "Age Group Differences", x = "Variable", y = "p-value") +
-    theme_minimal() +
-    scale_fill_brewer(palette = "Set1")
-
-correlations_plot <- ggplot(correlations, aes(x = Variable1, y = Variable2, fill = Correlation, label = round(Correlation, 2))) +
-    geom_tile() +
-    geom_text(size = 4, color = "black") +
-    labs(title = "Correlations", x = "Variable 1", y = "Variable 2") +
-    theme_minimal() +
-    scale_fill_gradient2(low = "blue", high = "red", mid = "white", midpoint = 0, limit = c(-1, 1), name = "Correlation")
 
 
 # Save data
@@ -229,8 +201,5 @@ plot_file_names <- c(
     "age-group-differences-plot.png",
     "correlations-plot.png"
 )
-
-print(plot_list[1])
-print(plot_file_names)
 
 mapply(save_plot, plot_list, plot_file_names)
