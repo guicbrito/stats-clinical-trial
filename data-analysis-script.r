@@ -1,3 +1,4 @@
+## ----import_and_encoding-------
 library(tidyverse)
 library(rio)
 library(broom)
@@ -33,6 +34,8 @@ data <- import("input/data.xlsx", setclass = "tibble", na = "NA") %>%
         Idade <= 20, "20_ou_menos", "acima_de_20"
     ))
 
+
+## ----normality_tests-----------
 shapiro <- function(data, vars) {
     data %>%
         select(all_of(vars)) %>%
@@ -48,6 +51,8 @@ shapiro <- function(data, vars) {
         )
 }
 
+
+## ----descriptive_statistics----
 calc_stats <- function(data, vars, group_by_var = NULL, overall = TRUE) {
     data %>%
         select(all_of(vars), if (!overall) all_of(group_by_var)) %>%
@@ -73,6 +78,8 @@ calc_stats <- function(data, vars, group_by_var = NULL, overall = TRUE) {
         )
 }
 
+
+## ----categorical_variables_frequencies-----
 calc_freqs <- function(data, vars) {
     data %>%
         select(Grupo, all_of(vars)) %>%
@@ -87,6 +94,8 @@ calc_freqs <- function(data, vars) {
         arrange(Variável, Grupo, Valor)
 }
 
+
+## ----group_differences---------
 calc_diffs <- function(data, vars, normality, p.value, group_var) {
     map_df(vars, function(var) {
         normality <- filter(normality, Variável == var)
@@ -120,6 +129,8 @@ calc_diffs <- function(data, vars, normality, p.value, group_var) {
         arrange(p_value)
 }
 
+
+## ----effect_size---------------
 cohen_d <- function(data, var, group_var) {
     group1 <- data %>%
         filter(data[[group_var]] == unique(data[[group_var]])[1]) %>%
@@ -150,6 +161,8 @@ biserial <- function(data, var, group_var) {
     return(rbc)
 }
 
+
+## ----variables_correlations----
 calc_corrs <- function(data, vars, norms, p.value) {
     combn(vars, 2, simplify = FALSE) %>%
         map_df(function(pair) {
@@ -182,35 +195,44 @@ calc_corrs <- function(data, vars, norms, p.value) {
         })
 }
 
+
+## ----Export-tables--------------
 custom_kable <- function(table_data, ...) {
     table_output <- kable(table_data, ...)
     return(table_output)
 }
-
-
-stats <- calc_stats(data, unlist(targets$stats))
-custom_kable(stats, digits = 1, align = "lcclrrrrr")
-
-stats <- calc_stats(data, unlist(targets$stats), "Grupo", overall = FALSE)
-custom_kable(stats, digits = 1, align = "lcclrrrrr")
-
-freq <- calc_freqs(data, unlist(targets$freq))
-custom_kable(freq, digits = 2)
-
-diffs <- calc_diffs(data, unlist(targets$diffs), normality, p.value, "Grupo")
-custom_kable(diffs, digits = 2)
-
-corrs <- calc_corrs(data, unlist(targets$corrs), normality, p.value)
-custom_kable(corrs, digits = 2)
-
-age_diffs <- calc_diffs(data, unlist(targets$age_diffs), normality, p.value, "Categoria_Idade")
-custom_kable(age_diffs, digits = 2)
 
 normality <- shapiro(data, unlist(targets[names(targets) != "freqs"],
     use.names = FALSE
 ) %>% unique())
 custom_kable(normality, digits = 3)
 
+stats <- calc_stats(data, unlist(targets$stats))
+custom_kable(stats, digits = 1, align = "lcclrrrrr")
+
+
+stats <- calc_stats(data, unlist(targets$stats), "Grupo", overall = FALSE)
+custom_kable(stats, digits = 1, align = "lcclrrrrr")
+
+
+freq <- calc_freqs(data, unlist(targets$freq))
+custom_kable(freq, digits = 2)
+
+
+diffs <- calc_diffs(data, unlist(targets$diffs), normality, p.value, "Grupo")
+custom_kable(diffs, digits = 2)
+
+
+corrs <- calc_corrs(data, unlist(targets$corrs), normality, p.value)
+custom_kable(corrs, digits = 2)
+
+
+age_diffs <- calc_diffs(data, unlist(targets$age_diffs), normality, p.value, "Categoria_Idade")
+custom_kable(age_diffs, digits = 2)
+
+
+
+## ----export_csv, echo=FALSE----
 data_list <- list(
     normality,
     stats,

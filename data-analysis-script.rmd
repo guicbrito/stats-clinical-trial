@@ -9,14 +9,13 @@ output:
   pdf_document:
     latex_engine: xelatex
     toc: yes
-    toc_depth: 4
+    toc_depth: 3
     df_print: kable
-subtitle: PUCRS
-linestretch: "`r (lstr <- 1)`"
+subtitle: Métodos Laboratoriais e Modelos Experimentais Aplicados à Pesquisa
+linestretch: "`r (lstr <- 1.05)`"
 geometry:
-    - top=0.8in
-    - left=1.2in
-    - right=1.2in
+    - left=1.4in
+    - right=1.4in
 ---
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(eval = TRUE, warning = FALSE, message = FALSE, size = "small", linestretch = 0.8, tidy = "styler", lang = "r", size = "small", indent = "  ", cache = TRUE, autodep = TRUE)
@@ -53,24 +52,25 @@ Foram utilizados os seguintes métodos estatísticos:\nopagebreak
 
 ### Acesso ao código da análise e aos dados
 
-Esse projeto, com o código R acima, assim como os dados associados podem ser acessado no seguinte link:
+Esse projeto, com o código R da análise, o documento em formato rmarkdown que gera o pdf, assim como os dados associados podem ser acessado no seguinte link:
 
-\newpage\newgeometry{left=0.7in, top=0.8in}
+\newpage\newgeometry{left=0.7in, right=0.7in, top=0.8in, bottom=0.8in}
 
 ## \ \ \ \ \ Exercícios\nopagebreak
  \ \ \ \ \ Abaixo seguem as tabelas com os resultados das análises descritas.\nopagebreak
 
-### \ \ \ \ \ Questão 1\nopagebreak
+### \ \ \ \ \ \ Questão 1\nopagebreak
 
-#### Toda Amostra\newline\nopagebreak
+#### Estatísticas da Amostra\newline\nopagebreak
 
 ```{r descriptive_results, echo=FALSE}
 stats <- calc_stats(data, unlist(targets$stats))
 custom_kable(stats, digits = 1, align = "lcclrrrrr")
 ```
+
 \nopagebreak\normalsize
 
-#### Por Grupo\nopagebreak\newline
+#### Estatísticas por Grupo\nopagebreak\newline
 
 ```{r age_descriptive_results, echo=FALSE}
 stats <- calc_stats(data, unlist(targets$stats), "Grupo", overall = FALSE)
@@ -132,13 +132,15 @@ normality <- shapiro(data, unlist(targets[names(targets) != "freqs"],
 custom_kable(normality, digits = 3)
 ```
 
-\normalsize\restoregeometry
+\normalsize\restoregeometry\newgeometry{left=1.35in, right=1.35in, top=0.8in, bottom=0.8in}
 
 ## Métodos\nopagebreak
 
+A análise estatística foi realizada utilizando o software R, versão 4.23 (R Core Team, 2023). São necessarios instalados os packages tidyverse, rio, broom, openxlsx e kableExtra.
+
 ### Importação e Pre-processamentos dos Dados\nopagebreak
 
-> Essa etapa consiste na importação dos dados e na codificação dos caracteres especiais para ASCII (remove acentuação, ç e outros que causam erros ao executar o código).
+Essa etapa consiste na importação dos dados e na codificação dos caracteres especiais para ASCII (remove acentuação, ç e outros que causam erros ao executar o código).
 
 -   Os dados do estudo são importados de uma tabela de excel "data.xlsx", que deve conter cada unidade observacional em uma linha e cada variável em um coluna.
 -   As variáves de interesse devem ser listadas em arquivos de texto abaixo na pasta "input".
@@ -149,8 +151,6 @@ custom_kable(normality, digits = 3)
     -   "corrs.txt" = análise de correlações entre variáveis
     -   "age_diffs.txt" = análise de diferenças pelo efeito da idade, \>= ou \< de 20 anos
   \nopagebreak
-
-
 
 ```{r import_and_encoding}
 library(tidyverse)
@@ -189,7 +189,7 @@ data <- import("input/data.xlsx", setclass = "tibble", na = "NA") %>%
     ))
 ```
 
-\normalsize\restoregeometry
+\normalsize
 
 ### Teste de Normalidade\nopagebreak
 
@@ -267,7 +267,7 @@ calc_freqs <- function(data, vars) {
 }
 ```
 
-\normalsize
+\normalsize\newpage
 
 ### Diferenças entre Grupos e pelo Efeito da Idade\nopagebreak
 
@@ -351,7 +351,6 @@ biserial <- function(data, var, group_var) {
 ### Correlações entre Variáveis\nopagebreak
 
 Aqui calcula-se as correlações entre as variáveis de interesse: Idade, Dias_internacao, IMC_absoluto, DNA_corrigido15x, VEF1percprevist, SpO2final, VO2mLkgminfinal. Ainda, extrai-se a variável DNA_corrigido15x para análise isolada.\nopagebreak
-
 
 
 ```{r variables_correlations}
