@@ -2,29 +2,45 @@
 title: "Exercício de Análise Estatística de Ensaio Clínico"
 author: "Guilherme Camargo Brito"
 date: "`r format(Sys.Date(), '%B %d, %Y')`"
+papersize: a4
+header-includes:
+  - \usepackage{lipsum}
 output:
   pdf_document:
+    latex_engine: xelatex
     toc: yes
+    toc_depth: 4
     df_print: kable
-    keep_tex: yes
-    highlight: tango
-  html_document:
-    toc: yes
-    df_print: kable
-  word_document:
-    toc: yes
 subtitle: PUCRS
+linestretch: "`r (lstr <- 1)`"
+geometry:
+    - top=0.8in
+    - left=0.8in
+    - right=1.2in
 ---
-
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+knitr::opts_chunk$set(eval = TRUE, warning = FALSE, message = FALSE, size = "small", linestretch = 0.8, tidy = "styler", lang = "r", size = "small", indent = "  ", cache = TRUE, autodep = TRUE)
+def.source.hook <- knitr::knit_hooks$get("source")
+knitr::knit_hooks$set(source = function(x, options) {
+    x <- def.source.hook(x, options)
+    x <- ifelse(!is.null(options$linestretch),
+        paste0("\\linespread{", options$linestretch, "}\n", x, "\n\n\\linespread{", lstr, "}"),
+        x
+    )
+    ifelse(!is.null(options$size),
+        paste0("\\", options$size, "\n\n", x, "\n\n "),
+        x
+    )
+})
 ```
 
-## introdução
+\newpage
+
+## Introdução\nopagebreak
 
 > Esse relatório é referente a análise estatística de um ensaio clínico para a disciplina Métodos laboratoriais e modelos experimentais aplicados à pesquisa do curso de pós-graduação em Biologia Celular e Molecular da PUCRS.
 
-Foram utilizados os seguintes métodos estatísticos:
+Foram utilizados os seguintes métodos estatísticos:\nopagebreak
 
 -   Análise descritiva: média, mediana, desvio padrão, erro padrão e intervalo interquartil.
 -   Teste de normalidade: Shapiro-Wilk para definição de uso de testes paramétricos ou não-paramétricos.
@@ -35,9 +51,93 @@ Foram utilizados os seguintes métodos estatísticos:
 -   Análise de correlações entre variáveis: correlação produto-momento de Pearson (variáveis paramétricas) ou correlação de Spearman (variáveis não-paramétricas).
 -   Todas as análises consideraram um nível alfa de 5% (p.value = 0.05).
 
-## Métodos
+### Acesso ao código da análise e aos dados
 
-### Importação e Pre-processamentos dos Dados
+Esse projeto, com o código R acima, assim como os dados associados podem ser acessado no seguinte link:
+
+\newpage
+
+## Exercícios\nopagebreak
+Abaixo seguem as tabelas com os resultados das análises descritas.\nopagebreak
+
+### Questão 1\nopagebreak
+
+#### Toda Amostra\nopagebreak\newline
+```{r descriptive_results, echo=FALSE}
+stats <- calc_stats(data, unlist(targets$stats))
+custom_kable(stats, digits = 1, align = "lcclrrrrr")
+```
+\nopagebreak\linebreak
+\normalsize
+
+#### Por Grupo\nopagebreak\newline
+```{r age_descriptive_results, echo=FALSE}
+stats <- calc_stats(data, unlist(targets$stats), "Grupo", overall = FALSE)
+custom_kable(stats, digits = 1, align = "lcclrrrrr")
+```
+
+\normalsize
+
+### Questão 2\nopagebreak
+
+#### Análise de Frequências\nopagebreak
+
+```{r categorical_freq_results, echo=FALSE}
+freq <- calc_freqs(data, unlist(targets$freq))
+custom_kable(freq, digits = 2)
+```
+
+\normalsize
+
+### Questão 3\nopagebreak
+
+#### Diferenças entre Grupos\nopagebreak\newline
+
+```{r group_diff_results, echo=FALSE}
+diffs <- calc_diffs(data, unlist(targets$diffs), normality, p.value, "Grupo")
+custom_kable(diffs, digits = 2)
+```
+
+\normalsize
+
+### Questão 4\nopagebreak
+
+#### Correlações entre Variáveis\nopagebreak\newline
+
+```{r correlations_results, echo=FALSE}
+corrs <- calc_corrs(data, unlist(targets$corrs), normality, p.value)
+custom_kable(corrs, digits = 2)
+```
+
+\normalsize
+
+### Questão 5\nopagebreak
+
+#### Diferenças pelo Efeito da Idade\nopagebreak\newline
+
+```{r age_diff_results, echo=FALSE}
+age_diffs <- calc_diffs(data, unlist(targets$age_diffs), normality, p.value, "Categoria_Idade")
+custom_kable(age_diffs, digits = 2)
+```
+
+\normalsize
+
+## Outros Resultados\nopagebreak
+
+### Teste de Normalidade\nopagebreak
+
+```{r normality_results, echo=FALSE}
+normality <- shapiro(data, unlist(targets[names(targets) != "freqs"],
+    use.names = FALSE
+) %>% unique())
+custom_kable(normality, digits = 3)
+```
+
+\normalsize
+
+## Métodos\nopagebreak
+
+### Importação e Pre-processamentos dos Dados\nopagebreak
 
 > Essa etapa consiste na importação dos dados e na codificação dos caracteres especiais para ASCII (remove acentuação, ç e outros que causam erros ao executar o código).
 
@@ -49,16 +149,17 @@ Foram utilizados os seguintes métodos estatísticos:
     -   "diffs.txt" = análise de diferenças entre grupos
     -   "corrs.txt" = análise de correlações entre variáveis
     -   "age_diffs.txt" = análise de diferenças pelo efeito da idade, \>= ou \< de 20 anos
+  \nopagebreak
 
-```{r import_and_encoding, warning=FALSE, message=FALSE}
+
+
+```{r import_and_encoding}
 library(tidyverse)
 library(rio)
 library(broom)
 library(openxlsx)
 library(kableExtra)
-
 p.value <- 0.05
-
 input <- paste0(
     "input/",
     c(
@@ -69,28 +170,31 @@ input <- paste0(
         "age_diffs.txt"
     )
 )
-
 read <- function(path) {
     names(import(path, setclass = "tibble"))
 }
-
 encoding <- function(data) {
     lapply(data, function(x) {
         iconv(x, from = "UTF-8", to = "ASCII//TRANSLIT")
     })
 }
-
 targets <- lapply(input, read) %>% lapply(encoding)
 names(targets) <- c("stats", "freqs", "diffs", "corrs", "age_diffs")
-
 data <- import("input/data.xlsx", setclass = "tibble", na = "NA") %>%
-    setNames(iconv(colnames(.), from = "UTF-8", to = "ASCII//TRANSLIT")) %>%
-    mutate(Categoria_Idade = if_else(Idade <= 20, "20_ou_menos", "acima_de_20"))
+    setNames(iconv(colnames(.),
+        from = "UTF-8",
+        to = "ASCII//TRANSLIT"
+    )) %>%
+    mutate(Categoria_Idade = if_else(
+        Idade <= 20, "20_ou_menos", "acima_de_20"
+    ))
 ```
 
-### Teste de Normalidade
+\normalsize\restoregeometry
 
-Aqui define-se uma função que aplica o teste de Shapiro-Wilk para verificar se os dados seguem uma distribuição normal. A partir desses resultados, define-se a aplicação de testes paramétricos ou não-paramétricos nas análises subsequentes.
+### Teste de Normalidade\nopagebreak
+
+Aqui define-se uma função que aplica o teste de Shapiro-Wilk para verificar se os dados seguem uma distribuição normal. A partir desses resultados, define-se a aplicação de testes paramétricos ou não-paramétricos nas análises subsequentes.\nopagebreak
 
 ```{r normality_tests}
 shapiro <- function(data, vars) {
@@ -109,9 +213,11 @@ shapiro <- function(data, vars) {
 }
 ```
 
-### Estatísticas Descritivas
+\normalsize
 
-Aqui define-se a função que calcula as estatísticas descritivas para as variáveis de interesse. Nesse caso Idade, Dias_ATB, Dias_internacao,Altura_cm ,Peso_kg, IMC_absoluto, DNA_corrigido15x, VEF1percprevist, CVFpercprevist, SpO2final,VO2mLkgminfinal, VEabsolutofinal, ReservaVentilatória.
+### Estatísticas Descritivas\nopagebreak
+
+Aqui define-se a função que calcula as estatísticas descritivas para as variáveis de interesse. Nesse caso Idade, Dias_ATB, Dias_internacao,Altura_cm ,Peso_kg, IMC_absoluto, DNA_corrigido15x, VEF1percprevist, CVFpercprevist, SpO2final,VO2mLkgminfinal, VEabsolutofinal, ReservaVentilatória.\nopagebreak
 
 ```{r descriptive_statistics}
 calc_stats <- function(data, vars, group_by_var = NULL, overall = TRUE) {
@@ -140,9 +246,11 @@ calc_stats <- function(data, vars, group_by_var = NULL, overall = TRUE) {
 }
 ```
 
-### Análise de Frequências para Variáveis Categóricas
+\normalsize
 
-Aqui calcula-se as frequências absoluta e relativa das variáveis categóricas por grupo. As variáveis de interesse são: Sexo, Mutação, Pseudomonas_cronico, Internação, DNAcat243,SPO2cat, VO2categ.
+### Análise de Frequências para Variáveis Categóricas\nopagebreak
+
+Aqui calcula-se as frequências absoluta e relativa das variáveis categóricas por grupo. As variáveis de interesse são: Sexo, Mutação, Pseudomonas_cronico, Internação, DNAcat243,SPO2cat, VO2categ.\nopagebreak
 
 ```{r categorical_variables_frequencies}
 calc_freqs <- function(data, vars) {
@@ -160,9 +268,11 @@ calc_freqs <- function(data, vars) {
 }
 ```
 
-### Diferenças entre Grupos e pelo Efeito da Idade
+\normalsize
 
-Aqui calcula-se as diferenças entre grupos e diferenças pelo efeito da idade, \>= ou \< de 20 anos para cada uma das seguintes variáveis de interesse: Idade, Dias_internacao, IMC_absoluto, DNA_corrigido15x, VEF1percprevist, SpO2final, VO2mLkgminfinal.
+### Diferenças entre Grupos e pelo Efeito da Idade\nopagebreak
+
+Aqui calcula-se as diferenças entre grupos e diferenças pelo efeito da idade, \>= ou \< de 20 anos para cada uma das seguintes variáveis de interesse: Idade, Dias_internacao, IMC_absoluto, DNA_corrigido15x, VEF1percprevist, SpO2final, VO2mLkgminfinal.\nopagebreak
 
 ```{r group_differences}
 calc_diffs <- function(data, vars, normality, p.value, group_var) {
@@ -181,23 +291,29 @@ calc_diffs <- function(data, vars, normality, p.value, group_var) {
         }
         tibble(
             Variável = var,
-            Teste = test_result$method,
+            Teste = if (is_normal) {
+                "Welch Two Sample t-test"
+            } else {
+                "Wilcoxon rank sum test"
+            },
             df = ifelse(is_normal, test_result$parameter, NA),
-            Estatística = test_result$statistic,
+            Stat = test_result$statistic,
             p_value = test_result$p.value,
-            Significância = ifelse(test_result$p.value < p.value, "*", "-"),
-            Effect_Size = effect_size,
-            CI_min = test_result$conf.int[1],
-            CI_max = test_result$conf.int[2]
+            Sign = ifelse(test_result$p.value < p.value, "*", "-"),
+            Effect = effect_size,
+            CI_low = test_result$conf.int[1],
+            CI_up = test_result$conf.int[2]
         )
     }) %>%
         arrange(p_value)
 }
 ```
 
-### Cálculo de Tamanho do Efeito
+\normalsize
 
-Aqui calcula-se o tamanho do efeito para as diferenças entre grupos e diferenças pelo efeito da idade, \>= ou \< de 20 anos para cada uma das seguintes variáveis de interesse: Idade, Dias_internacao, IMC_absoluto, DNA_corrigido15x, VEF1percprevist, SpO2final, VO2mLkgminfinal.
+### Cálculo de Tamanho do Efeito\nopagebreak
+
+Aqui calcula-se o tamanho do efeito para as diferenças entre grupos e diferenças pelo efeito da idade, \>= ou \< de 20 anos para cada uma das seguintes variáveis de interesse: Idade, Dias_internacao, IMC_absoluto, DNA_corrigido15x, VEF1percprevist, SpO2final, VO2mLkgminfinal.\nopagebreak
 
 ```{r effect_size}
 cohen_d <- function(data, var, group_var) {
@@ -214,7 +330,6 @@ cohen_d <- function(data, var, group_var) {
     cohen_d <- mean_diff / pooled_sd
     return(cohen_d)
 }
-
 biserial <- function(data, var, group_var) {
     data <- data %>% mutate(Rank = rank(data[[var]],
         na.last = "keep",
@@ -232,9 +347,13 @@ biserial <- function(data, var, group_var) {
 }
 ```
 
-### Correlações entre Variáveis
+\normalsize
 
-Aqui calcula-se as correlações entre as variáveis de interesse: Idade, Dias_internacao, IMC_absoluto, DNA_corrigido15x, VEF1percprevist, SpO2final, VO2mLkgminfinal. Ainda, extrai-se a variável DNA_corrigido15x para análise isolada.
+### Correlações entre Variáveis\nopagebreak
+
+Aqui calcula-se as correlações entre as variáveis de interesse: Idade, Dias_internacao, IMC_absoluto, DNA_corrigido15x, VEF1percprevist, SpO2final, VO2mLkgminfinal. Ainda, extrai-se a variável DNA_corrigido15x para análise isolada.\nopagebreak
+
+
 
 ```{r variables_correlations}
 calc_corrs <- function(data, vars, norms, p.value) {
@@ -242,35 +361,39 @@ calc_corrs <- function(data, vars, norms, p.value) {
         map_df(function(pair) {
             norms1 <- filter(norms, Variável == pair[1])
             norms2 <- filter(norms, Variável == pair[2])
-            is_normal <- norms1$shapiro_p > p.value & norms2$shapiro_p > p.value
+            is_normal <- norms1$shapiro_p > p.value &
+                norms2$shapiro_p > p.value
             corr_result <- if (is_normal) {
-                cor.test(data[[pair[1]]], data[[pair[2]]],
+                corr_result <- cor.test(data[[pair[1]]], data[[pair[2]]],
                     method = "pearson"
                 )
             } else {
-                cor.test(data[[pair[1]]],
-                    data[[pair[2]]],
+                corr_result <- cor.test(data[[pair[1]]], data[[pair[2]]],
                     method = "spearman"
                 )
             }
             tibble(
                 Variável1 = pair[1],
                 Variável2 = pair[2],
-                Teste = corr_result$method,
+                Teste = if (is_normal) "Pearson" else "Spearman",
                 df = corr_result$parameter,
-                Correlação = corr_result$estimate,
+                Corr = corr_result$estimate,
                 p_value = corr_result$p.value,
-                Significância = ifelse(corr_result$p.value < p.value, "*", "-"),
-                CI_lower = corr_result$conf.int[1],
-                CI_upper = corr_result$conf.int[2]
+                Sign = ifelse(
+                    corr_result$p.value < p.value, "*", "-"
+                ),
+                CI_low = corr_result$conf.int[1],
+                CI_up = corr_result$conf.int[2]
             )
         })
 }
 ```
 
-### Apresentação de dados
+\normalsize
 
-Define uma função de formatação dos resultados em formato de tabela.
+### Apresentação de dados\nopagebreak
+
+Define uma função de formatação dos resultados em formato de tabela.\nopagebreak
 
 ```{r table_format}
 custom_kable <- function(table_data, ...) {
@@ -279,66 +402,11 @@ custom_kable <- function(table_data, ...) {
 }
 ```
 
-\newpage
+\normalsize
 
-## Resultados
+## Exportação dos Resultados\nopagebreak
 
-Abaixo seguem as tabelas com os resultados das análises descritas.
-
-### Teste de Normalidade
-
-```{r normality_results, echo=FALSE}
-normality <- shapiro(data, unlist(targets[names(targets) != "freqs"], use.names = FALSE) %>% unique())
-custom_kable(normality, digits = 3)
-```
-
-### Estatísticas Descritivas
-
-Toda amostra
-
-```{r descriptive_results, echo=FALSE}
-stats <- calc_stats(data, unlist(targets$stats))
-custom_kable(stats, digits = 1, align = "lcclrrrrr")
-```
-
-Por Categoria de Idade
-
-```{r age_descriptive_results, echo=FALSE}
-stats <- calc_stats(data, unlist(targets$stats), "Grupo", overall = FALSE)
-custom_kable(stats, digits = 1, align = "lcclrrrrr")
-```
-
-### Análise de Frequências
-
-```{r categorical_freq_results, echo=FALSE}
-freq <- calc_freqs(data, unlist(targets$freq))
-custom_kable(freq, digits = 2)
-```
-
-### Diferenças entre Grupos
-
-```{r group_diff_results, echo=FALSE}
-diffs <- calc_diffs(data, unlist(targets$diffs), normality, p.value, "Grupo")
-custom_kable(diffs, digits = 2)
-```
-
-### Diferenças pelo Efeito da Idade
-
-```{r age_diff_results, echo=FALSE}
-age_diffs <- calc_diffs(data, unlist(targets$age_diffs), normality, p.value, "Categoria_Idade")
-custom_kable(age_diffs, digits = 2)
-```
-
-### Correlações entre Variáveis
-
-```{r correlations_results, echo=FALSE}
-corrs <- calc_corrs(data, unlist(targets$corrs), normality, p.value)
-custom_kable(corrs, digits = 2)
-```
-
-## Exportação dos Resultados
-
-Os resultados foram exportados para arquivos CSV e excel para uso posterior. Os arquivos são salvos na pasta `output`. A tabela principal com os resultados finais está no arquivo "results.xlsx", com cada análise em uma aba da planilha.
+Os resultados foram exportados para arquivos CSV e excel para uso posterior. Os arquivos são salvos na pasta `output`. A tabela principal com os resultados finais está no arquivo "results.xlsx", com cada análise em uma aba da planilha.\nopagebreak
 
 ```{r export_csv, echo=FALSE}
 data_list <- list(
@@ -374,12 +442,11 @@ walk2(data_list, data_file_names, ~ {
 saveWorkbook(output_workbook, "output/results.xlsx", overwrite = TRUE)
 ```
 
-## Conclusão
 
-### Acesso ao código da análise e aos dados
+\normalsize
 
-Esse projeto, com o código R acima, assim como os dados associados podem ser acessado no seguinte link:
+## Conclusão\nopagebreak
 
-### Limitações:
+### Limitações:\nopagebreak
 
 A análise ainda carece de toda a parte de visualização dos resultados e dos dados, a qual deveria incluir gráficos de barra, boxplot, matriz de correlação, entre outros.

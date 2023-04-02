@@ -6,3 +6,6 @@
 **/*.pdf
 **/output/*
 **/*.docx
+**/*_cache
+**/*.aux
+**/*.toc

@@ -2,7 +2,6 @@ library(tidyverse)
 library(rio)
 library(broom)
 library(openxlsx)
-library(kableExtra)
 
 p.value <- 0.05
 
@@ -171,7 +170,7 @@ calc_corrs <- function(data, vars, norms, p.value) {
             tibble(
                 Variável1 = pair[1],
                 Variável2 = pair[2],
-                Teste = corr_result$method,
+                Teste = if (is_normal) "Pearson" else "Spearman",
                 df = corr_result$parameter,
                 Correlação = corr_result$estimate,
                 p_value = corr_result$p.value,
@@ -182,31 +181,23 @@ calc_corrs <- function(data, vars, norms, p.value) {
         })
 }
 
-custom_kable <- function(table_data, ...) {
-    table_output <- kable(table_data, ...)
-    return(table_output)
-}
+
 
 normality <- shapiro(data, unlist(targets[names(targets) != "freqs"], use.names = FALSE) %>% unique())
-custom_kable(normality, digits = 3)
 
 stats <- calc_stats(data, unlist(targets$stats))
-a <- custom_kable(stats, digits = 1, align = "lcclrrrrr")
 
 stats <- calc_stats(data, unlist(targets$stats), "Grupo", overall = FALSE)
-b <- custom_kable(stats, digits = 1, align = "lcclrrrrr")
 
 freq <- calc_freqs(data, unlist(targets$freq))
-custom_kable(freq, digits = 2)
 
 diffs <- calc_diffs(data, unlist(targets$diffs), normality, p.value, "Grupo")
-custom_kable(diffs, digits = 2)
 
 age_diffs <- calc_diffs(data, unlist(targets$age_diffs), normality, p.value, "Categoria_Idade")
-custom_kable(age_diffs, digits = 2)
+
 
 corrs <- calc_corrs(data, unlist(targets$corrs), normality, p.value)
-custom_kable(corrs, digits = 2)
+
 
 # Save data
 data_list <- list(
