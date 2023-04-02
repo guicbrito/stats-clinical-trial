@@ -2,9 +2,8 @@ library(tidyverse)
 library(rio)
 library(broom)
 library(openxlsx)
-
+library(kableExtra)
 p.value <- 0.05
-
 input <- paste0(
     "input/",
     c(
@@ -15,24 +14,24 @@ input <- paste0(
         "age_diffs.txt"
     )
 )
-
 read <- function(path) {
     names(import(path, setclass = "tibble"))
 }
-
 encoding <- function(data) {
     lapply(data, function(x) {
         iconv(x, from = "UTF-8", to = "ASCII//TRANSLIT")
     })
 }
-
 targets <- lapply(input, read) %>% lapply(encoding)
 names(targets) <- c("stats", "freqs", "diffs", "corrs", "age_diffs")
-
 data <- import("input/data.xlsx", setclass = "tibble", na = "NA") %>%
-    setNames(iconv(colnames(.), from = "UTF-8", to = "ASCII//TRANSLIT")) %>%
-    mutate(Categoria_Idade = if_else(Idade <= 20, "20_ou_menos", "acima_de_20"))
-
+    setNames(iconv(colnames(.),
+        from = "UTF-8",
+        to = "ASCII//TRANSLIT"
+    )) %>%
+    mutate(Categoria_Idade = if_else(
+        Idade <= 20, "20_ou_menos", "acima_de_20"
+    ))
 
 shapiro <- function(data, vars) {
     data %>%
@@ -48,7 +47,6 @@ shapiro <- function(data, vars) {
             )
         )
 }
-
 
 calc_stats <- function(data, vars, group_by_var = NULL, overall = TRUE) {
     data %>%
@@ -75,7 +73,6 @@ calc_stats <- function(data, vars, group_by_var = NULL, overall = TRUE) {
         )
 }
 
-
 calc_freqs <- function(data, vars) {
     data %>%
         select(Grupo, all_of(vars)) %>%
@@ -89,7 +86,6 @@ calc_freqs <- function(data, vars) {
         select(Variável, Grupo, Valor, Freq_abs, Freq_rel) %>%
         arrange(Variável, Grupo, Valor)
 }
-
 
 calc_diffs <- function(data, vars, normality, p.value, group_var) {
     map_df(vars, function(var) {
@@ -107,14 +103,18 @@ calc_diffs <- function(data, vars, normality, p.value, group_var) {
         }
         tibble(
             Variável = var,
-            Teste = test_result$method,
+            Teste = if (is_normal) {
+                "Welch Two Sample t-test"
+            } else {
+                "Wilcoxon rank sum test"
+            },
             df = ifelse(is_normal, test_result$parameter, NA),
-            Estatística = test_result$statistic,
+            Stat = test_result$statistic,
             p_value = test_result$p.value,
-            Significância = ifelse(test_result$p.value < p.value, "*", "-"),
-            Effect_Size = effect_size,
-            CI_min = test_result$conf.int[1],
-            CI_max = test_result$conf.int[2]
+            Sign = ifelse(test_result$p.value < p.value, "*", "-"),
+            Effect = effect_size,
+            CI_low = test_result$conf.int[1],
+            CI_up = test_result$conf.int[2]
         )
     }) %>%
         arrange(p_value)
@@ -134,7 +134,6 @@ cohen_d <- function(data, var, group_var) {
     cohen_d <- mean_diff / pooled_sd
     return(cohen_d)
 }
-
 biserial <- function(data, var, group_var) {
     data <- data %>% mutate(Rank = rank(data[[var]],
         na.last = "keep",
@@ -156,14 +155,14 @@ calc_corrs <- function(data, vars, norms, p.value) {
         map_df(function(pair) {
             norms1 <- filter(norms, Variável == pair[1])
             norms2 <- filter(norms, Variável == pair[2])
-            is_normal <- norms1$shapiro_p > p.value & norms2$shapiro_p > p.value
+            is_normal <- norms1$shapiro_p > p.value &
+                norms2$shapiro_p > p.value
             corr_result <- if (is_normal) {
-                cor.test(data[[pair[1]]], data[[pair[2]]],
+                corr_result <- cor.test(data[[pair[1]]], data[[pair[2]]],
                     method = "pearson"
                 )
             } else {
-                cor.test(data[[pair[1]]],
-                    data[[pair[2]]],
+                corr_result <- cor.test(data[[pair[1]]], data[[pair[2]]],
                     method = "spearman"
                 )
             }
@@ -172,34 +171,46 @@ calc_corrs <- function(data, vars, norms, p.value) {
                 Variável2 = pair[2],
                 Teste = if (is_normal) "Pearson" else "Spearman",
                 df = corr_result$parameter,
-                Correlação = corr_result$estimate,
+                Corr = corr_result$estimate,
                 p_value = corr_result$p.value,
-                Significância = ifelse(corr_result$p.value < p.value, "*", "-"),
-                CI_lower = corr_result$conf.int[1],
-                CI_upper = corr_result$conf.int[2]
+                Sign = ifelse(
+                    corr_result$p.value < p.value, "*", "-"
+                ),
+                CI_low = corr_result$conf.int[1],
+                CI_up = corr_result$conf.int[2]
             )
         })
 }
 
+custom_kable <- function(table_data, ...) {
+    table_output <- kable(table_data, ...)
+    return(table_output)
+}
 
-
-normality <- shapiro(data, unlist(targets[names(targets) != "freqs"], use.names = FALSE) %>% unique())
 
 stats <- calc_stats(data, unlist(targets$stats))
+custom_kable(stats, digits = 1, align = "lcclrrrrr")
 
 stats <- calc_stats(data, unlist(targets$stats), "Grupo", overall = FALSE)
+custom_kable(stats, digits = 1, align = "lcclrrrrr")
 
 freq <- calc_freqs(data, unlist(targets$freq))
+custom_kable(freq, digits = 2)
 
 diffs <- calc_diffs(data, unlist(targets$diffs), normality, p.value, "Grupo")
-
-age_diffs <- calc_diffs(data, unlist(targets$age_diffs), normality, p.value, "Categoria_Idade")
-
+custom_kable(diffs, digits = 2)
 
 corrs <- calc_corrs(data, unlist(targets$corrs), normality, p.value)
+custom_kable(corrs, digits = 2)
 
+age_diffs <- calc_diffs(data, unlist(targets$age_diffs), normality, p.value, "Categoria_Idade")
+custom_kable(age_diffs, digits = 2)
 
-# Save data
+normality <- shapiro(data, unlist(targets[names(targets) != "freqs"],
+    use.names = FALSE
+) %>% unique())
+custom_kable(normality, digits = 3)
+
 data_list <- list(
     normality,
     stats,
@@ -231,5 +242,3 @@ walk2(data_list, data_file_names, ~ {
     writeData(output_workbook, sheet = .y, .x)
 })
 saveWorkbook(output_workbook, "output/results.xlsx", overwrite = TRUE)
-
-# rm(list = Filter(function(x) !inherits(get(x), "tbl"), ls()))

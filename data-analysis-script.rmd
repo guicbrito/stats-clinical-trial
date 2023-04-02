@@ -15,7 +15,7 @@ subtitle: PUCRS
 linestretch: "`r (lstr <- 1)`"
 geometry:
     - top=0.8in
-    - left=0.8in
+    - left=1.2in
     - right=1.2in
 ---
 ```{r setup, include=FALSE}
@@ -55,22 +55,23 @@ Foram utilizados os seguintes métodos estatísticos:\nopagebreak
 
 Esse projeto, com o código R acima, assim como os dados associados podem ser acessado no seguinte link:
 
-\newpage
+\newpage\newgeometry{left=0.7in, top=0.8in}
 
-## Exercícios\nopagebreak
-Abaixo seguem as tabelas com os resultados das análises descritas.\nopagebreak
+## \ \ \ \ \ Exercícios\nopagebreak
+ \ \ \ \ \ Abaixo seguem as tabelas com os resultados das análises descritas.\nopagebreak
 
-### Questão 1\nopagebreak
+### \ \ \ \ \ Questão 1\nopagebreak
 
-#### Toda Amostra\nopagebreak\newline
+#### Toda Amostra\newline\nopagebreak
+
 ```{r descriptive_results, echo=FALSE}
 stats <- calc_stats(data, unlist(targets$stats))
 custom_kable(stats, digits = 1, align = "lcclrrrrr")
 ```
-\nopagebreak\linebreak
-\normalsize
+\nopagebreak\normalsize
 
 #### Por Grupo\nopagebreak\newline
+
 ```{r age_descriptive_results, echo=FALSE}
 stats <- calc_stats(data, unlist(targets$stats), "Grupo", overall = FALSE)
 custom_kable(stats, digits = 1, align = "lcclrrrrr")
@@ -78,9 +79,9 @@ custom_kable(stats, digits = 1, align = "lcclrrrrr")
 
 \normalsize
 
-### Questão 2\nopagebreak
+### \ \ \ \ \  Questão 2\nopagebreak
 
-#### Análise de Frequências\nopagebreak
+#### \ \ \ \ \  Análise de Frequências\nopagebreak
 
 ```{r categorical_freq_results, echo=FALSE}
 freq <- calc_freqs(data, unlist(targets$freq))
@@ -89,9 +90,9 @@ custom_kable(freq, digits = 2)
 
 \normalsize
 
-### Questão 3\nopagebreak
+### \ \ \ \ \  Questão 3\nopagebreak
 
-#### Diferenças entre Grupos\nopagebreak\newline
+#### \ Diferenças entre Grupos\nopagebreak\newline
 
 ```{r group_diff_results, echo=FALSE}
 diffs <- calc_diffs(data, unlist(targets$diffs), normality, p.value, "Grupo")
@@ -100,9 +101,8 @@ custom_kable(diffs, digits = 2)
 
 \normalsize
 
-### Questão 4\nopagebreak
-
-#### Correlações entre Variáveis\nopagebreak\newline
+### \ \ \ \ \  Questão 4\nopagebreak
+#### Correlações entre Variáveis\newline\nopagebreak
 
 ```{r correlations_results, echo=FALSE}
 corrs <- calc_corrs(data, unlist(targets$corrs), normality, p.value)
@@ -111,7 +111,7 @@ custom_kable(corrs, digits = 2)
 
 \normalsize
 
-### Questão 5\nopagebreak
+### \ \ \ \ \  Questão 5\nopagebreak
 
 #### Diferenças pelo Efeito da Idade\nopagebreak\newline
 
@@ -125,7 +125,6 @@ custom_kable(age_diffs, digits = 2)
 ## Outros Resultados\nopagebreak
 
 ### Teste de Normalidade\nopagebreak
-
 ```{r normality_results, echo=FALSE}
 normality <- shapiro(data, unlist(targets[names(targets) != "freqs"],
     use.names = FALSE
@@ -133,7 +132,7 @@ normality <- shapiro(data, unlist(targets[names(targets) != "freqs"],
 custom_kable(normality, digits = 3)
 ```
 
-\normalsize
+\normalsize\restoregeometry
 
 ## Métodos\nopagebreak
 
