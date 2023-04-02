@@ -9,11 +9,11 @@
 <meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
 
 
-<meta name="author" content="Guilherme Camargo Brito" />
+<meta name="author" content="gctbr" />
 
-<meta name="date" content="2023-04-01" />
+<meta name="date" content="2023-04-02" />
 
-<title>Exercício de Análise Estatística de Ensaio Clínico</title>
+<title>data-analysis-script.r</title>
 
 <script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
 // be compatible with the behavior of Pandoc < 2.8).
@@ -356,119 +356,49 @@ pre code {
 
 
 
-<h1 class="title toc-ignore">Exercício de Análise Estatística de Ensaio
-Clínico</h1>
-<h3 class="subtitle">PUCRS</h3>
-<h4 class="author">Guilherme Camargo Brito</h4>
-<h4 class="date">April 01, 2023</h4>
+<h1 class="title toc-ignore">data-analysis-script.r</h1>
+<h4 class="author">gctbr</h4>
+<h4 class="date">2023-04-02</h4>
 
 </div>
 
-<div id="TOC">
-<ul>
-<li><a href="#introdução" id="toc-introdução">introdução</a></li>
-<li><a href="#métodos" id="toc-métodos">Métodos</a>
-<ul>
-<li><a href="#importação-e-pre-processamentos-dos-dados" id="toc-importação-e-pre-processamentos-dos-dados">Importação e
-Pre-processamentos dos Dados</a></li>
-<li><a href="#teste-de-normalidade" id="toc-teste-de-normalidade">Teste
-de Normalidade</a></li>
-<li><a href="#estatísticas-descritivas" id="toc-estatísticas-descritivas">Estatísticas Descritivas</a></li>
-<li><a href="#análise-de-frequências-para-variáveis-categóricas" id="toc-análise-de-frequências-para-variáveis-categóricas">Análise de
-Frequências para Variáveis Categóricas</a></li>
-<li><a href="#diferenças-entre-grupos-e-pelo-efeito-da-idade" id="toc-diferenças-entre-grupos-e-pelo-efeito-da-idade">Diferenças entre
-Grupos e pelo Efeito da Idade</a></li>
-<li><a href="#cálculo-de-tamanho-do-efeito" id="toc-cálculo-de-tamanho-do-efeito">Cálculo de Tamanho do
-Efeito</a></li>
-<li><a href="#correlações-entre-variáveis" id="toc-correlações-entre-variáveis">Correlações entre
-Variáveis</a></li>
-<li><a href="#apresentação-de-dados" id="toc-apresentação-de-dados">Apresentação de dados</a></li>
-</ul></li>
-<li><a href="#resultados" id="toc-resultados">Resultados</a>
-<ul>
-<li><a href="#teste-de-normalidade-1" id="toc-teste-de-normalidade-1">Teste de Normalidade</a></li>
-<li><a href="#estatísticas-descritivas-1" id="toc-estatísticas-descritivas-1">Estatísticas Descritivas</a></li>
-<li><a href="#análise-de-frequências" id="toc-análise-de-frequências">Análise de Frequências</a></li>
-<li><a href="#diferenças-entre-grupos" id="toc-diferenças-entre-grupos">Diferenças entre Grupos</a></li>
-<li><a href="#diferenças-pelo-efeito-da-idade" id="toc-diferenças-pelo-efeito-da-idade">Diferenças pelo Efeito da
-Idade</a></li>
-<li><a href="#correlações-entre-variáveis-1" id="toc-correlações-entre-variáveis-1">Correlações entre
-Variáveis</a></li>
-</ul></li>
-<li><a href="#exportação-dos-resultados" id="toc-exportação-dos-resultados">Exportação dos Resultados</a></li>
-<li><a href="#conclusão" id="toc-conclusão">Conclusão</a>
-<ul>
-<li><a href="#acesso-ao-código-da-análise-e-aos-dados" id="toc-acesso-ao-código-da-análise-e-aos-dados">Acesso ao código da
-análise e aos dados</a></li>
-<li><a href="#limitações" id="toc-limitações">Limitações:</a></li>
-</ul></li>
-</ul>
-</div>
 
-<div id="introdução" class="section level2">
-<h2>introdução</h2>
-<blockquote>
-<p>Esse relatório é referente a análise estatística de um ensaio clínico
-para a disciplina Métodos laboratoriais e modelos experimentais
-aplicados à pesquisa do curso de pós-graduação em Biologia Celular e
-Molecular da PUCRS.</p>
-</blockquote>
-<p>Foram utilizados os seguintes métodos estatísticos:</p>
-<ul>
-<li>Análise descritiva: média, mediana, desvio padrão, erro padrão e
-intervalo interquartil.</li>
-<li>Teste de normalidade: Shapiro-Wilk para definição de uso de testes
-paramétricos ou não-paramétricos.</li>
-<li>Análise de frequência: frequência absoluta e relativa.</li>
-<li>Análise de diferenças entre grupos: teste t de duas amostras de
-Welch (variáveis paramétricas) ou Mann-Whitney U (variáveis
-não-paramétricas).</li>
-<li>Análise de diferenças entre grupos de idade (&gt;=20 vs &lt;20
-anos): Teste t de duas amostras de Welch (variáveis paramétricas) ou
-Mann-Whitney U (variáveis não-paramétricas).</li>
-<li>Cálculo de tamanho de efeito: Cohen’s d (variáveis paramétricas) ou
-Coeficiente de correlação ponto-bisserial (variáveis
-não-paramétricas).</li>
-<li>Análise de correlações entre variáveis: correlação produto-momento
-de Pearson (variáveis paramétricas) ou correlação de Spearman (variáveis
-não-paramétricas).</li>
-<li>Todas as análises consideraram um nível alfa de 5% (p.value =
-0.05).</li>
-</ul>
-</div>
-<div id="métodos" class="section level2">
-<h2>Métodos</h2>
-<div id="importação-e-pre-processamentos-dos-dados" class="section level3">
-<h3>Importação e Pre-processamentos dos Dados</h3>
-<blockquote>
-<p>Essa etapa consiste na importação dos dados e na codificação dos
-caracteres especiais para ASCII (remove acentuação, ç e outros que
-causam erros ao executar o código).</p>
-</blockquote>
-<ul>
-<li>Os dados do estudo são importados de uma tabela de excel
-“data.xlsx”, que deve conter cada unidade observacional em uma linha e
-cada variável em um coluna.</li>
-<li>As variáves de interesse devem ser listadas em arquivos de texto
-abaixo na pasta “input”.</li>
-<li>Os arquivos determinam quais variaveis serão incluidas em cada teste
-estatistico:
-<ul>
-<li>“stats.txt” = análise descritiva</li>
-<li>“freqs.txt” = análise de frequência</li>
-<li>“diffs.txt” = análise de diferenças entre grupos</li>
-<li>“corrs.txt” = análise de correlações entre variáveis</li>
-<li>“age_diffs.txt” = análise de diferenças pelo efeito da idade, &gt;=
-ou &lt; de 20 anos</li>
-</ul></li>
-</ul>
-<pre class="r"><code>library(tidyverse)
-library(rio)
-library(broom)
-library(openxlsx)
-library(kableExtra)
-
-p.value &lt;- 0.05
+<pre class="r"><code>library(tidyverse)</code></pre>
+<pre><code>## Warning: package &#39;tidyverse&#39; was built under R version 4.2.3</code></pre>
+<pre><code>## Warning: package &#39;ggplot2&#39; was built under R version 4.2.3</code></pre>
+<pre><code>## Warning: package &#39;tibble&#39; was built under R version 4.2.3</code></pre>
+<pre><code>## Warning: package &#39;tidyr&#39; was built under R version 4.2.3</code></pre>
+<pre><code>## Warning: package &#39;readr&#39; was built under R version 4.2.3</code></pre>
+<pre><code>## Warning: package &#39;purrr&#39; was built under R version 4.2.3</code></pre>
+<pre><code>## Warning: package &#39;dplyr&#39; was built under R version 4.2.3</code></pre>
+<pre><code>## Warning: package &#39;stringr&#39; was built under R version 4.2.3</code></pre>
+<pre><code>## Warning: package &#39;forcats&#39; was built under R version 4.2.3</code></pre>
+<pre><code>## Warning: package &#39;lubridate&#39; was built under R version 4.2.3</code></pre>
+<pre><code>## ── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──
+## ✔ dplyr     1.1.1     ✔ readr     2.1.4
+## ✔ forcats   1.0.0     ✔ stringr   1.5.0
+## ✔ ggplot2   3.4.1     ✔ tibble    3.2.1
+## ✔ lubridate 1.9.2     ✔ tidyr     1.3.0
+## ✔ purrr     1.0.1     
+## ── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
+## ✖ dplyr::filter() masks stats::filter()
+## ✖ dplyr::lag()    masks stats::lag()
+## ℹ Use the conflicted package (&lt;http://conflicted.r-lib.org/&gt;) to force all conflicts to become errors</code></pre>
+<pre class="r"><code>library(rio)</code></pre>
+<pre><code>## Warning: package &#39;rio&#39; was built under R version 4.2.3</code></pre>
+<pre class="r"><code>library(broom)</code></pre>
+<pre><code>## Warning: package &#39;broom&#39; was built under R version 4.2.3</code></pre>
+<pre class="r"><code>library(openxlsx)</code></pre>
+<pre><code>## Warning: package &#39;openxlsx&#39; was built under R version 4.2.3</code></pre>
+<pre class="r"><code>library(kableExtra)</code></pre>
+<pre><code>## Warning: package &#39;kableExtra&#39; was built under R version 4.2.3</code></pre>
+<pre><code>## 
+## Attaching package: &#39;kableExtra&#39;
+## 
+## The following object is masked from &#39;package:dplyr&#39;:
+## 
+##     group_rows</code></pre>
+<pre class="r"><code>p.value &lt;- 0.05
 
 input &lt;- paste0(
     &quot;input/&quot;,
@@ -496,15 +426,10 @@ names(targets) &lt;- c(&quot;stats&quot;, &quot;freqs&quot;, &quot;diffs&quot;, 
 
 data &lt;- import(&quot;input/data.xlsx&quot;, setclass = &quot;tibble&quot;, na = &quot;NA&quot;) %&gt;%
     setNames(iconv(colnames(.), from = &quot;UTF-8&quot;, to = &quot;ASCII//TRANSLIT&quot;)) %&gt;%
-    mutate(Categoria_Idade = if_else(Idade &lt;= 20, &quot;20_ou_menos&quot;, &quot;acima_de_20&quot;))</code></pre>
-</div>
-<div id="teste-de-normalidade" class="section level3">
-<h3>Teste de Normalidade</h3>
-<p>Aqui define-se uma função que aplica o teste de Shapiro-Wilk para
-verificar se os dados seguem uma distribuição normal. A partir desses
-resultados, define-se a aplicação de testes paramétricos ou
-não-paramétricos nas análises subsequentes.</p>
-<pre class="r"><code>shapiro &lt;- function(data, vars) {
+    mutate(Categoria_Idade = if_else(Idade &lt;= 20, &quot;20_ou_menos&quot;, &quot;acima_de_20&quot;))
+
+
+shapiro &lt;- function(data, vars) {
     data %&gt;%
         select(all_of(vars)) %&gt;%
         gather(Variável, Valor) %&gt;%
@@ -513,18 +438,14 @@ não-paramétricos nas análises subsequentes.</p>
             n = n(),
             shapiro_w = shapiro.test(Valor)$statistic,
             shapiro_p = shapiro.test(Valor)$p.value,
-            normality = if_else(shapiro.test(Valor)$p.value &gt; p.value, &quot;parametric&quot;, &quot;non-parametric&quot;)
+            normality = if_else(shapiro.test(Valor)$p.value &gt; p.value,
+                &quot;parametric&quot;, &quot;non-parametric&quot;
+            )
         )
-}</code></pre>
-</div>
-<div id="estatísticas-descritivas" class="section level3">
-<h3>Estatísticas Descritivas</h3>
-<p>Aqui define-se a função que calcula as estatísticas descritivas para
-as variáveis de interesse. Nesse caso Idade, Dias_ATB,
-Dias_internacao,Altura_cm ,Peso_kg, IMC_absoluto, DNA_corrigido15x,
-VEF1percprevist, CVFpercprevist, SpO2final,VO2mLkgminfinal,
-VEabsolutofinal, ReservaVentilatória.</p>
-<pre class="r"><code>calc_stats &lt;- function(data, vars, group_by_var = NULL, overall = TRUE) {
+}
+
+
+calc_stats &lt;- function(data, vars, group_by_var = NULL, overall = TRUE) {
     data %&gt;%
         select(all_of(vars), if (!overall) all_of(group_by_var)) %&gt;%
         gather(Variável, Valor, -if (!overall) group_by_var) %&gt;%
@@ -538,21 +459,19 @@ VEabsolutofinal, ReservaVentilatória.</p>
         summarise(
             n = n(),
             missing = sum(is.na(Valor)),
-            normality = if_else(shapiro.test(Valor)$p.value &gt; p.value, &quot;parametric&quot;, &quot;non-parametric&quot;),
+            normality = if_else(shapiro.test(Valor)$p.value &gt; p.value,
+                &quot;parametric&quot;, &quot;non-parametric&quot;
+            ),
             mean = mean(Valor, na.rm = TRUE),
             median = median(Valor, na.rm = TRUE),
             sd = sd(Valor, na.rm = TRUE),
             se = sd(Valor, na.rm = TRUE) / sqrt(length(Valor)),
             iqr = IQR(Valor, na.rm = TRUE)
         )
-}</code></pre>
-</div>
-<div id="análise-de-frequências-para-variáveis-categóricas" class="section level3">
-<h3>Análise de Frequências para Variáveis Categóricas</h3>
-<p>Aqui calcula-se as frequências absoluta e relativa das variáveis
-categóricas por grupo. As variáveis de interesse são: Sexo, Mutação,
-Pseudomonas_cronico, Internação, DNAcat243,SPO2cat, VO2categ.</p>
-<pre class="r"><code>calc_freqs &lt;- function(data, vars) {
+}
+
+
+calc_freqs &lt;- function(data, vars) {
     data %&gt;%
         select(Grupo, all_of(vars)) %&gt;%
         gather(Variável, Valor, -Grupo) %&gt;%
@@ -564,19 +483,18 @@ Pseudomonas_cronico, Internação, DNAcat243,SPO2cat, VO2categ.</p>
         ) %&gt;%
         select(Variável, Grupo, Valor, Freq_abs, Freq_rel) %&gt;%
         arrange(Variável, Grupo, Valor)
-}</code></pre>
-</div>
-<div id="diferenças-entre-grupos-e-pelo-efeito-da-idade" class="section level3">
-<h3>Diferenças entre Grupos e pelo Efeito da Idade</h3>
-<p>Aqui calcula-se as diferenças entre grupos e diferenças pelo efeito
-da idade, &gt;= ou &lt; de 20 anos para cada uma das seguintes variáveis
-de interesse: Idade, Dias_internacao, IMC_absoluto, DNA_corrigido15x,
-VEF1percprevist, SpO2final, VO2mLkgminfinal.</p>
-<pre class="r"><code>calc_diffs &lt;- function(data, vars, normality, p.value, group_var) {
+}
+
+
+calc_diffs &lt;- function(data, vars, normality, p.value, group_var) {
     map_df(vars, function(var) {
         normality &lt;- filter(normality, Variável == var)
         is_normal &lt;- normality$shapiro_p &gt; p.value
-        test_result &lt;- if (is_normal) t.test(data[[var]] ~ data[[group_var]]) else wilcox.test(data[[var]] ~ data[[group_var]], conf.int = TRUE)
+        test_result &lt;- if (is_normal) {
+            t.test(data[[var]] ~ data[[group_var]])
+        } else {
+            wilcox.test(data[[var]] ~ data[[group_var]], conf.int = TRUE)
+        }
         effect_size &lt;- if (is_normal) {
             cohen_d(data, var, group_var)
         } else {
@@ -595,16 +513,9 @@ VEF1percprevist, SpO2final, VO2mLkgminfinal.</p>
         )
     }) %&gt;%
         arrange(p_value)
-}</code></pre>
-</div>
-<div id="cálculo-de-tamanho-do-efeito" class="section level3">
-<h3>Cálculo de Tamanho do Efeito</h3>
-<p>Aqui calcula-se o tamanho do efeito para as diferenças entre grupos e
-diferenças pelo efeito da idade, &gt;= ou &lt; de 20 anos para cada uma
-das seguintes variáveis de interesse: Idade, Dias_internacao,
-IMC_absoluto, DNA_corrigido15x, VEF1percprevist, SpO2final,
-VO2mLkgminfinal.</p>
-<pre class="r"><code>cohen_d &lt;- function(data, var, group_var) {
+}
+
+cohen_d &lt;- function(data, var, group_var) {
     group1 &lt;- data %&gt;%
         filter(data[[group_var]] == unique(data[[group_var]])[1]) %&gt;%
         pull(var)
@@ -612,36 +523,45 @@ VO2mLkgminfinal.</p>
         filter(data[[group_var]] == unique(data[[group_var]])[2]) %&gt;%
         pull(var)
     mean_diff &lt;- mean(group1, na.rm = TRUE) - mean(group2, na.rm = TRUE)
-    pooled_sd &lt;- sqrt(((length(group1) - 1) * var(group1, na.rm = TRUE) + (length(group2) - 1) * var(group2, na.rm = TRUE)) / (length(group1) + length(group2) - 2))
+    pooled_sd &lt;- sqrt(((length(group1) - 1) * var(group1, na.rm = TRUE) +
+        (length(group2) - 1) * var(group2, na.rm = TRUE))
+    / (length(group1) + length(group2) - 2))
     cohen_d &lt;- mean_diff / pooled_sd
     return(cohen_d)
 }
 
 biserial &lt;- function(data, var, group_var) {
-    data &lt;- data %&gt;% mutate(Rank = rank(data[[var]], na.last = &quot;keep&quot;, ties.method = &quot;average&quot;))
+    data &lt;- data %&gt;% mutate(Rank = rank(data[[var]],
+        na.last = &quot;keep&quot;,
+        ties.method = &quot;average&quot;
+    ))
     group1 &lt;- data %&gt;%
         filter(data[[group_var]] == unique(data[[group_var]])[1]) %&gt;%
         pull(Rank)
     group2 &lt;- data %&gt;%
         filter(data[[group_var]] == unique(data[[group_var]])[2]) %&gt;%
         pull(Rank)
-    rbc &lt;- (sum(group1) / length(group1) - sum(group2) / length(group2)) / length(data[[var]])
+    rbc &lt;- (sum(group1) / length(group1) - sum(group2) /
+        length(group2)) / length(data[[var]])
     return(rbc)
-}</code></pre>
-</div>
-<div id="correlações-entre-variáveis" class="section level3">
-<h3>Correlações entre Variáveis</h3>
-<p>Aqui calcula-se as correlações entre as variáveis de interesse:
-Idade, Dias_internacao, IMC_absoluto, DNA_corrigido15x, VEF1percprevist,
-SpO2final, VO2mLkgminfinal. Ainda, extrai-se a variável DNA_corrigido15x
-para análise isolada.</p>
-<pre class="r"><code>calc_corrs &lt;- function(data, vars, norms, p.value) {
+}
+
+calc_corrs &lt;- function(data, vars, norms, p.value) {
     combn(vars, 2, simplify = FALSE) %&gt;%
         map_df(function(pair) {
             norms1 &lt;- filter(norms, Variável == pair[1])
             norms2 &lt;- filter(norms, Variável == pair[2])
             is_normal &lt;- norms1$shapiro_p &gt; p.value &amp; norms2$shapiro_p &gt; p.value
-            corr_result &lt;- if (is_normal) cor.test(data[[pair[1]]], data[[pair[2]]], method = &quot;pearson&quot;) else cor.test(data[[pair[1]]], data[[pair[2]]], method = &quot;spearman&quot;)
+            corr_result &lt;- if (is_normal) {
+                cor.test(data[[pair[1]]], data[[pair[2]]],
+                    method = &quot;pearson&quot;
+                )
+            } else {
+                cor.test(data[[pair[1]]],
+                    data[[pair[2]]],
+                    method = &quot;spearman&quot;
+                )
+            }
             tibble(
                 Variável1 = pair[1],
                 Variável2 = pair[2],
@@ -654,1349 +574,1966 @@ para análise isolada.</p>
                 CI_upper = corr_result$conf.int[2]
             )
         })
-}</code></pre>
-</div>
-<div id="apresentação-de-dados" class="section level3">
-<h3>Apresentação de dados</h3>
-<p>Define uma função de formatação dos resultados em formato de
-tabela.</p>
-<pre class="r"><code>custom_kable &lt;- function(table_data, ...) {
-    table_output &lt;- kable(table_data, format = &quot;markdown&quot;, booktabs = TRUE, ...)
+}
 
+custom_kable &lt;- function(table_data, ...) {
+    table_output &lt;- kable(table_data, ...)
     return(table_output)
-}</code></pre>
-</div>
-</div>
-<div id="resultados" class="section level2">
-<h2>Resultados</h2>
-<p>Abaixo seguem as tabelas com os resultados das análises
-descritas.</p>
-<div id="teste-de-normalidade-1" class="section level3">
-<h3>Teste de Normalidade</h3>
+}
+
+normality &lt;- shapiro(data, unlist(targets[names(targets) != &quot;freqs&quot;], use.names = FALSE) %&gt;% unique())
+custom_kable(normality, digits = 3)</code></pre>
 <table>
 <thead>
-<tr class="header">
-<th align="left">Variável</th>
-<th align="right">n</th>
-<th align="right">shapiro_w</th>
-<th align="right">shapiro_p</th>
-<th align="left">normality</th>
+<tr>
+<th style="text-align:left;">
+Variável
+</th>
+<th style="text-align:right;">
+n
+</th>
+<th style="text-align:right;">
+shapiro_w
+</th>
+<th style="text-align:right;">
+shapiro_p
+</th>
+<th style="text-align:left;">
+normality
+</th>
 </tr>
 </thead>
 <tbody>
-<tr class="odd">
-<td align="left">Altura_cm</td>
-<td align="right">16</td>
-<td align="right">0.912</td>
-<td align="right">0.128</td>
-<td align="left">parametric</td>
+<tr>
+<td style="text-align:left;">
+Altura_cm
+</td>
+<td style="text-align:right;">
+16
+</td>
+<td style="text-align:right;">
+0.912
+</td>
+<td style="text-align:right;">
+0.128
+</td>
+<td style="text-align:left;">
+parametric
+</td>
 </tr>
-<tr class="even">
-<td align="left">CVFpercprevist</td>
-<td align="right">16</td>
-<td align="right">0.899</td>
-<td align="right">0.076</td>
-<td align="left">parametric</td>
+<tr>
+<td style="text-align:left;">
+CVFpercprevist
+</td>
+<td style="text-align:right;">
+16
+</td>
+<td style="text-align:right;">
+0.899
+</td>
+<td style="text-align:right;">
+0.076
+</td>
+<td style="text-align:left;">
+parametric
+</td>
 </tr>
-<tr class="odd">
-<td align="left">DNA_corrigido15x</td>
-<td align="right">16</td>
-<td align="right">0.931</td>
-<td align="right">0.251</td>
-<td align="left">parametric</td>
+<tr>
+<td style="text-align:left;">
+DNA_corrigido15x
+</td>
+<td style="text-align:right;">
+16
+</td>
+<td style="text-align:right;">
+0.931
+</td>
+<td style="text-align:right;">
+0.251
+</td>
+<td style="text-align:left;">
+parametric
+</td>
 </tr>
-<tr class="even">
-<td align="left">Dias_ATB</td>
-<td align="right">16</td>
-<td align="right">0.903</td>
-<td align="right">0.125</td>
-<td align="left">parametric</td>
+<tr>
+<td style="text-align:left;">
+Dias_ATB
+</td>
+<td style="text-align:right;">
+16
+</td>
+<td style="text-align:right;">
+0.903
+</td>
+<td style="text-align:right;">
+0.125
+</td>
+<td style="text-align:left;">
+parametric
+</td>
 </tr>
-<tr class="odd">
-<td align="left">Dias_internacao</td>
-<td align="right">16</td>
-<td align="right">0.753</td>
-<td align="right">0.001</td>
-<td align="left">non-parametric</td>
+<tr>
+<td style="text-align:left;">
+Dias_internacao
+</td>
+<td style="text-align:right;">
+16
+</td>
+<td style="text-align:right;">
+0.753
+</td>
+<td style="text-align:right;">
+0.001
+</td>
+<td style="text-align:left;">
+non-parametric
+</td>
 </tr>
-<tr class="even">
-<td align="left">IMC_absoluto</td>
-<td align="right">16</td>
-<td align="right">0.909</td>
-<td align="right">0.112</td>
-<td align="left">parametric</td>
+<tr>
+<td style="text-align:left;">
+IMC_absoluto
+</td>
+<td style="text-align:right;">
+16
+</td>
+<td style="text-align:right;">
+0.909
+</td>
+<td style="text-align:right;">
+0.112
+</td>
+<td style="text-align:left;">
+parametric
+</td>
 </tr>
-<tr class="odd">
-<td align="left">Idade</td>
-<td align="right">16</td>
-<td align="right">0.894</td>
-<td align="right">0.066</td>
-<td align="left">parametric</td>
+<tr>
+<td style="text-align:left;">
+Idade
+</td>
+<td style="text-align:right;">
+16
+</td>
+<td style="text-align:right;">
+0.894
+</td>
+<td style="text-align:right;">
+0.066
+</td>
+<td style="text-align:left;">
+parametric
+</td>
 </tr>
-<tr class="even">
-<td align="left">Peso_kg</td>
-<td align="right">16</td>
-<td align="right">0.906</td>
-<td align="right">0.100</td>
-<td align="left">parametric</td>
+<tr>
+<td style="text-align:left;">
+Peso_kg
+</td>
+<td style="text-align:right;">
+16
+</td>
+<td style="text-align:right;">
+0.906
+</td>
+<td style="text-align:right;">
+0.100
+</td>
+<td style="text-align:left;">
+parametric
+</td>
 </tr>
-<tr class="odd">
-<td align="left">ReservaVentilatoria</td>
-<td align="right">16</td>
-<td align="right">0.773</td>
-<td align="right">0.001</td>
-<td align="left">non-parametric</td>
+<tr>
+<td style="text-align:left;">
+ReservaVentilatoria
+</td>
+<td style="text-align:right;">
+16
+</td>
+<td style="text-align:right;">
+0.773
+</td>
+<td style="text-align:right;">
+0.001
+</td>
+<td style="text-align:left;">
+non-parametric
+</td>
 </tr>
-<tr class="even">
-<td align="left">SpO2final</td>
-<td align="right">16</td>
-<td align="right">0.936</td>
-<td align="right">0.307</td>
-<td align="left">parametric</td>
+<tr>
+<td style="text-align:left;">
+SpO2final
+</td>
+<td style="text-align:right;">
+16
+</td>
+<td style="text-align:right;">
+0.936
+</td>
+<td style="text-align:right;">
+0.307
+</td>
+<td style="text-align:left;">
+parametric
+</td>
 </tr>
-<tr class="odd">
-<td align="left">VEF1percprevist</td>
-<td align="right">16</td>
-<td align="right">0.862</td>
-<td align="right">0.021</td>
-<td align="left">non-parametric</td>
+<tr>
+<td style="text-align:left;">
+VEF1percprevist
+</td>
+<td style="text-align:right;">
+16
+</td>
+<td style="text-align:right;">
+0.862
+</td>
+<td style="text-align:right;">
+0.021
+</td>
+<td style="text-align:left;">
+non-parametric
+</td>
 </tr>
-<tr class="even">
-<td align="left">VEabsolutofinal</td>
-<td align="right">16</td>
-<td align="right">0.952</td>
-<td align="right">0.524</td>
-<td align="left">parametric</td>
+<tr>
+<td style="text-align:left;">
+VEabsolutofinal
+</td>
+<td style="text-align:right;">
+16
+</td>
+<td style="text-align:right;">
+0.952
+</td>
+<td style="text-align:right;">
+0.524
+</td>
+<td style="text-align:left;">
+parametric
+</td>
 </tr>
-<tr class="odd">
-<td align="left">VO2mLkgminfinal</td>
-<td align="right">16</td>
-<td align="right">0.970</td>
-<td align="right">0.845</td>
-<td align="left">parametric</td>
+<tr>
+<td style="text-align:left;">
+VO2mLkgminfinal
+</td>
+<td style="text-align:right;">
+16
+</td>
+<td style="text-align:right;">
+0.970
+</td>
+<td style="text-align:right;">
+0.845
+</td>
+<td style="text-align:left;">
+parametric
+</td>
 </tr>
 </tbody>
 </table>
-</div>
-<div id="estatísticas-descritivas-1" class="section level3">
-<h3>Estatísticas Descritivas</h3>
-<div id="toda-amostra" class="section level4">
-<h4>Toda amostra</h4>
+<pre class="r"><code>stats &lt;- calc_stats(data, unlist(targets$stats))
+a &lt;- custom_kable(stats, digits = 1, align = &quot;lcclrrrrr&quot;)
+
+stats &lt;- calc_stats(data, unlist(targets$stats), &quot;Grupo&quot;, overall = FALSE)</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;Variável&#39;. You can override using the
+## `.groups` argument.</code></pre>
+<pre class="r"><code>b &lt;- custom_kable(stats, digits = 1, align = &quot;lcclrrrrr&quot;)
+
+freq &lt;- calc_freqs(data, unlist(targets$freq))
+custom_kable(freq, digits = 2)</code></pre>
 <table>
-<colgroup>
-<col width="25%" />
-<col width="5%" />
-<col width="11%" />
-<col width="19%" />
-<col width="7%" />
-<col width="8%" />
-<col width="7%" />
-<col width="6%" />
-<col width="7%" />
-</colgroup>
 <thead>
-<tr class="header">
-<th align="left">Variável</th>
-<th align="center">n</th>
-<th align="center">missing</th>
-<th align="left">normality</th>
-<th align="right">mean</th>
-<th align="right">median</th>
-<th align="right">sd</th>
-<th align="right">se</th>
-<th align="right">iqr</th>
+<tr>
+<th style="text-align:left;">
+Variável
+</th>
+<th style="text-align:right;">
+Grupo
+</th>
+<th style="text-align:right;">
+Valor
+</th>
+<th style="text-align:right;">
+Freq_abs
+</th>
+<th style="text-align:right;">
+Freq_rel
+</th>
 </tr>
 </thead>
 <tbody>
-<tr class="odd">
-<td align="left">Altura_cm</td>
-<td align="center">16</td>
-<td align="center">0</td>
-<td align="left">parametric</td>
-<td align="right">158.9</td>
-<td align="right">163.0</td>
-<td align="right">19.1</td>
-<td align="right">4.8</td>
-<td align="right">21.2</td>
+<tr>
+<td style="text-align:left;">
+DNAcat243
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+0.62
+</td>
 </tr>
-<tr class="even">
-<td align="left">CVFpercprevist</td>
-<td align="center">16</td>
-<td align="center">0</td>
-<td align="left">parametric</td>
-<td align="right">65.1</td>
-<td align="right">53.3</td>
-<td align="right">25.4</td>
-<td align="right">6.3</td>
-<td align="right">42.5</td>
+<tr>
+<td style="text-align:left;">
+DNAcat243
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+3
+</td>
+<td style="text-align:right;">
+0.38
+</td>
 </tr>
-<tr class="odd">
-<td align="left">DNA_corrigido15x</td>
-<td align="center">16</td>
-<td align="center">0</td>
-<td align="left">parametric</td>
-<td align="right">305.3</td>
-<td align="right">334.0</td>
-<td align="right">167.1</td>
-<td align="right">41.8</td>
-<td align="right">252.9</td>
+<tr>
+<td style="text-align:left;">
+DNAcat243
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+0.12
+</td>
 </tr>
-<tr class="even">
-<td align="left">Dias_ATB</td>
-<td align="center">16</td>
-<td align="center">2</td>
-<td align="left">parametric</td>
-<td align="right">53.3</td>
-<td align="right">49.0</td>
-<td align="right">30.3</td>
-<td align="right">7.6</td>
-<td align="right">43.0</td>
+<tr>
+<td style="text-align:left;">
+DNAcat243
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+7
+</td>
+<td style="text-align:right;">
+0.88
+</td>
 </tr>
-<tr class="odd">
-<td align="left">Dias_internacao</td>
-<td align="center">16</td>
-<td align="center">0</td>
-<td align="left">non-parametric</td>
-<td align="right">10.2</td>
-<td align="right">0.0</td>
-<td align="right">14.4</td>
-<td align="right">3.6</td>
-<td align="right">15.8</td>
+<tr>
+<td style="text-align:left;">
+Internacao
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+3
+</td>
+<td style="text-align:right;">
+0.38
+</td>
 </tr>
-<tr class="even">
-<td align="left">IMC_absoluto</td>
-<td align="center">16</td>
-<td align="center">0</td>
-<td align="left">parametric</td>
-<td align="right">19.8</td>
-<td align="right">19.6</td>
-<td align="right">2.8</td>
-<td align="right">0.7</td>
-<td align="right">2.8</td>
+<tr>
+<td style="text-align:left;">
+Internacao
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+0.62
+</td>
 </tr>
-<tr class="odd">
-<td align="left">Idade</td>
-<td align="center">16</td>
-<td align="center">0</td>
-<td align="left">parametric</td>
-<td align="right">17.4</td>
-<td align="right">19.8</td>
-<td align="right">7.1</td>
-<td align="right">1.8</td>
-<td align="right">12.7</td>
+<tr>
+<td style="text-align:left;">
+Internacao
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+4
+</td>
+<td style="text-align:right;">
+0.50
+</td>
 </tr>
-<tr class="even">
-<td align="left">Peso_kg</td>
-<td align="center">16</td>
-<td align="center">0</td>
-<td align="left">parametric</td>
-<td align="right">51.3</td>
-<td align="right">55.0</td>
-<td align="right">14.9</td>
-<td align="right">3.7</td>
-<td align="right">17.5</td>
+<tr>
+<td style="text-align:left;">
+Internacao
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+4
+</td>
+<td style="text-align:right;">
+0.50
+</td>
 </tr>
-<tr class="odd">
-<td align="left">ReservaVentilatoria</td>
-<td align="center">16</td>
-<td align="center">0</td>
-<td align="left">non-parametric</td>
-<td align="right">36.8</td>
-<td align="right">43.7</td>
-<td align="right">19.9</td>
-<td align="right">5.0</td>
-<td align="right">15.1</td>
+<tr>
+<td style="text-align:left;">
+Mutacao
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+0.25
+</td>
 </tr>
-<tr class="even">
-<td align="left">SpO2final</td>
-<td align="center">16</td>
-<td align="center">0</td>
-<td align="left">parametric</td>
-<td align="right">90.6</td>
-<td align="right">91.0</td>
-<td align="right">6.3</td>
-<td align="right">1.6</td>
-<td align="right">12.0</td>
+<tr>
+<td style="text-align:left;">
+Mutacao
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+3
+</td>
+<td style="text-align:right;">
+0.38
+</td>
 </tr>
-<tr class="odd">
-<td align="left">VEF1percprevist</td>
-<td align="center">16</td>
-<td align="center">0</td>
-<td align="left">non-parametric</td>
-<td align="right">51.8</td>
-<td align="right">35.7</td>
-<td align="right">28.1</td>
-<td align="right">7.0</td>
-<td align="right">45.9</td>
+<tr>
+<td style="text-align:left;">
+Mutacao
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+3
+</td>
+<td style="text-align:right;">
+3
+</td>
+<td style="text-align:right;">
+0.38
+</td>
 </tr>
-<tr class="even">
-<td align="left">VEabsolutofinal</td>
-<td align="center">16</td>
-<td align="center">0</td>
-<td align="left">parametric</td>
-<td align="right">44.2</td>
-<td align="right">45.0</td>
-<td align="right">15.9</td>
-<td align="right">4.0</td>
-<td align="right">28.5</td>
+<tr>
+<td style="text-align:left;">
+Mutacao
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+0.75
+</td>
 </tr>
-<tr class="odd">
-<td align="left">VO2mLkgminfinal</td>
-<td align="center">16</td>
-<td align="center">0</td>
-<td align="left">parametric</td>
-<td align="right">32.8</td>
-<td align="right">32.7</td>
-<td align="right">5.2</td>
-<td align="right">1.3</td>
-<td align="right">6.6</td>
+<tr>
+<td style="text-align:left;">
+Mutacao
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+3
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+0.25
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Pseudomonas_cronico
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+0.25
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Pseudomonas_cronico
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+0.75
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Pseudomonas_cronico
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+3
+</td>
+<td style="text-align:right;">
+0.38
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Pseudomonas_cronico
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+0.62
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+SPO2cat
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+0.25
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+SPO2cat
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+0.75
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+SPO2cat
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+0.62
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+SPO2cat
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+3
+</td>
+<td style="text-align:right;">
+0.38
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Sexo
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+0.75
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Sexo
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+0.25
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Sexo
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+4
+</td>
+<td style="text-align:right;">
+0.50
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Sexo
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+4
+</td>
+<td style="text-align:right;">
+0.50
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+VO2categ
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+3
+</td>
+<td style="text-align:right;">
+0.38
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+VO2categ
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+0.62
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+VO2categ
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+0.25
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+VO2categ
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+0.75
+</td>
 </tr>
 </tbody>
 </table>
-</div>
-<div id="por-categoria-de-idade" class="section level4">
-<h4>Por Categoria de Idade</h4>
+<pre class="r"><code>diffs &lt;- calc_diffs(data, unlist(targets$diffs), normality, p.value, &quot;Grupo&quot;)</code></pre>
+<pre><code>## Warning in wilcox.test.default(x = DATA[[1L]], y = DATA[[2L]], ...): cannot
+## compute exact p-value with ties</code></pre>
+<pre><code>## Warning in wilcox.test.default(x = DATA[[1L]], y = DATA[[2L]], ...): cannot
+## compute exact confidence intervals with ties</code></pre>
+<pre class="r"><code>custom_kable(diffs, digits = 2)</code></pre>
 <table>
-<colgroup>
-<col width="24%" />
-<col width="8%" />
-<col width="3%" />
-<col width="9%" />
-<col width="18%" />
-<col width="7%" />
-<col width="8%" />
-<col width="7%" />
-<col width="6%" />
-<col width="7%" />
-</colgroup>
 <thead>
-<tr class="header">
-<th align="left">Variável</th>
-<th align="center">Grupo</th>
-<th align="center">n</th>
-<th align="left">missing</th>
-<th align="right">normality</th>
-<th align="right">mean</th>
-<th align="right">median</th>
-<th align="right">sd</th>
-<th align="right">se</th>
-<th align="left">iqr</th>
+<tr>
+<th style="text-align:left;">
+Variável
+</th>
+<th style="text-align:left;">
+Teste
+</th>
+<th style="text-align:right;">
+df
+</th>
+<th style="text-align:right;">
+Estatística
+</th>
+<th style="text-align:right;">
+p_value
+</th>
+<th style="text-align:left;">
+Significância
+</th>
+<th style="text-align:right;">
+Effect_Size
+</th>
+<th style="text-align:right;">
+CI_min
+</th>
+<th style="text-align:right;">
+CI_max
+</th>
 </tr>
 </thead>
 <tbody>
-<tr class="odd">
-<td align="left">Altura_cm</td>
-<td align="center">1</td>
-<td align="center">8</td>
-<td align="left">0</td>
-<td align="right">parametric</td>
-<td align="right">147.1</td>
-<td align="right">148.8</td>
-<td align="right">19.2</td>
-<td align="right">6.8</td>
-<td align="left">34.5</td>
+<tr>
+<td style="text-align:left;">
+VEF1percprevist
+</td>
+<td style="text-align:left;">
+Wilcoxon rank sum exact test
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+56.00
+</td>
+<td style="text-align:right;">
+0.01
+</td>
+<td style="text-align:left;">
+<ul>
+<li></td>
+<td style="text-align:right;">
+0.38
+</td>
+<td style="text-align:right;">
+5.09
+</td>
+<td style="text-align:right;">
+60.38
+</td>
 </tr>
-<tr class="even">
-<td align="left">Altura_cm</td>
-<td align="center">2</td>
-<td align="center">8</td>
-<td align="left">0</td>
-<td align="right">parametric</td>
-<td align="right">170.8</td>
-<td align="right">172.4</td>
-<td align="right">9.6</td>
-<td align="right">3.4</td>
-<td align="left">13.4</td>
+<tr>
+<td style="text-align:left;">
+DNA_corrigido15x
+</td>
+<td style="text-align:left;">
+Welch Two Sample t-test
+</td>
+<td style="text-align:right;">
+13.45
+</td>
+<td style="text-align:right;">
+-2.26
+</td>
+<td style="text-align:right;">
+0.04
+</td>
+<td style="text-align:left;">
+<ul>
+<li></td>
+<td style="text-align:right;">
+-1.13
+</td>
+<td style="text-align:right;">
+-326.42
+</td>
+<td style="text-align:right;">
+-7.57
+</td>
 </tr>
-<tr class="odd">
-<td align="left">CVFpercprevist</td>
-<td align="center">1</td>
-<td align="center">8</td>
-<td align="left">0</td>
-<td align="right">parametric</td>
-<td align="right">76.6</td>
-<td align="right">83.4</td>
-<td align="right">24.8</td>
-<td align="right">8.8</td>
-<td align="left">38.7</td>
+<tr>
+<td style="text-align:left;">
+SpO2final
+</td>
+<td style="text-align:left;">
+Welch Two Sample t-test
+</td>
+<td style="text-align:right;">
+12.63
+</td>
+<td style="text-align:right;">
+2.23
+</td>
+<td style="text-align:right;">
+0.04
+</td>
+<td style="text-align:left;">
+<ul>
+<li></td>
+<td style="text-align:right;">
+1.11
+</td>
+<td style="text-align:right;">
+0.17
+</td>
+<td style="text-align:right;">
+12.33
+</td>
 </tr>
-<tr class="even">
-<td align="left">CVFpercprevist</td>
-<td align="center">2</td>
-<td align="center">8</td>
-<td align="left">0</td>
-<td align="right">parametric</td>
-<td align="right">53.5</td>
-<td align="right">45.6</td>
-<td align="right">21.5</td>
-<td align="right">7.6</td>
-<td align="left">20.2</td>
+<tr>
+<td style="text-align:left;">
+Idade
+</td>
+<td style="text-align:left;">
+Welch Two Sample t-test
+</td>
+<td style="text-align:right;">
+13.94
+</td>
+<td style="text-align:right;">
+-1.08
+</td>
+<td style="text-align:right;">
+0.30
+</td>
+<td style="text-align:left;">
+<ul>
+<li></td>
+<td style="text-align:right;">
+-0.54
+</td>
+<td style="text-align:right;">
+-11.41
+</td>
+<td style="text-align:right;">
+3.75
+</td>
 </tr>
-<tr class="odd">
-<td align="left">DNA_corrigido15x</td>
-<td align="center">1</td>
-<td align="center">8</td>
-<td align="left">0</td>
-<td align="right">parametric</td>
-<td align="right">221.8</td>
-<td align="right">177.5</td>
-<td align="right">132.3</td>
-<td align="right">46.8</td>
-<td align="left">236.1</td>
+<tr>
+<td style="text-align:left;">
+Dias_internacao
+</td>
+<td style="text-align:left;">
+Wilcoxon rank sum test with continuity correction
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+29.00
+</td>
+<td style="text-align:right;">
+0.77
+</td>
+<td style="text-align:left;">
+<ul>
+<li></td>
+<td style="text-align:right;">
+-0.05
+</td>
+<td style="text-align:right;">
+-14.00
+</td>
+<td style="text-align:right;">
+14.00
+</td>
 </tr>
-<tr class="even">
-<td align="left">DNA_corrigido15x</td>
-<td align="center">2</td>
-<td align="center">8</td>
-<td align="left">0</td>
-<td align="right">parametric</td>
-<td align="right">388.8</td>
-<td align="right">366.5</td>
-<td align="right">162.3</td>
-<td align="right">57.4</td>
-<td align="left">121.0</td>
+<tr>
+<td style="text-align:left;">
+IMC_absoluto
+</td>
+<td style="text-align:left;">
+Welch Two Sample t-test
+</td>
+<td style="text-align:right;">
+7.57
+</td>
+<td style="text-align:right;">
+-0.27
+</td>
+<td style="text-align:right;">
+0.79
+</td>
+<td style="text-align:left;">
+<ul>
+<li></td>
+<td style="text-align:right;">
+-0.13
+</td>
+<td style="text-align:right;">
+-3.77
+</td>
+<td style="text-align:right;">
+2.99
+</td>
 </tr>
-<tr class="odd">
-<td align="left">Dias_ATB</td>
-<td align="center">1</td>
-<td align="center">8</td>
-<td align="left">1</td>
-<td align="right">parametric</td>
-<td align="right">51.9</td>
-<td align="right">42.0</td>
-<td align="right">32.0</td>
-<td align="right">11.3</td>
-<td align="left">21.0</td>
-</tr>
-<tr class="even">
-<td align="left">Dias_ATB</td>
-<td align="center">2</td>
-<td align="center">8</td>
-<td align="left">1</td>
-<td align="right">parametric</td>
-<td align="right">54.7</td>
-<td align="right">56.0</td>
-<td align="right">31.0</td>
-<td align="right">11.0</td>
-<td align="left">52.0</td>
-</tr>
-<tr class="odd">
-<td align="left">Dias_internacao</td>
-<td align="center">1</td>
-<td align="center">8</td>
-<td align="left">0</td>
-<td align="right">non-parametric</td>
-<td align="right">8.2</td>
-<td align="right">0.0</td>
-<td align="right">12.0</td>
-<td align="right">4.2</td>
-<td align="left">16.5</td>
-</tr>
-<tr class="even">
-<td align="left">Dias_internacao</td>
-<td align="center">2</td>
-<td align="center">8</td>
-<td align="left">0</td>
-<td align="right">non-parametric</td>
-<td align="right">12.2</td>
-<td align="right">7.0</td>
-<td align="right">17.0</td>
-<td align="right">6.0</td>
-<td align="left">15.8</td>
-</tr>
-<tr class="odd">
-<td align="left">IMC_absoluto</td>
-<td align="center">1</td>
-<td align="center">8</td>
-<td align="left">0</td>
-<td align="right">parametric</td>
-<td align="right">19.6</td>
-<td align="right">17.8</td>
-<td align="right">4.0</td>
-<td align="right">1.4</td>
-<td align="left">4.4</td>
-</tr>
-<tr class="even">
-<td align="left">IMC_absoluto</td>
-<td align="center">2</td>
-<td align="center">8</td>
-<td align="left">0</td>
-<td align="right">parametric</td>
-<td align="right">20.0</td>
-<td align="right">19.9</td>
-<td align="right">0.8</td>
-<td align="right">0.3</td>
-<td align="left">1.2</td>
-</tr>
-<tr class="odd">
-<td align="left">Idade</td>
-<td align="center">1</td>
-<td align="center">8</td>
-<td align="left">0</td>
-<td align="right">parametric</td>
-<td align="right">15.5</td>
-<td align="right">13.2</td>
-<td align="right">7.3</td>
-<td align="right">2.6</td>
-<td align="left">11.4</td>
-</tr>
-<tr class="even">
-<td align="left">Idade</td>
-<td align="center">2</td>
-<td align="center">8</td>
-<td align="left">0</td>
-<td align="right">parametric</td>
-<td align="right">19.3</td>
-<td align="right">21.1</td>
-<td align="right">6.8</td>
-<td align="right">2.4</td>
-<td align="left">6.3</td>
-</tr>
-<tr class="odd">
-<td align="left">Peso_kg</td>
-<td align="center">1</td>
-<td align="center">8</td>
-<td align="left">0</td>
-<td align="right">parametric</td>
-<td align="right">44.1</td>
-<td align="right">42.6</td>
-<td align="right">17.6</td>
-<td align="right">6.2</td>
-<td align="left">29.9</td>
-</tr>
-<tr class="even">
-<td align="left">Peso_kg</td>
-<td align="center">2</td>
-<td align="center">8</td>
-<td align="left">0</td>
-<td align="right">parametric</td>
-<td align="right">58.4</td>
-<td align="right">57.9</td>
-<td align="right">7.2</td>
-<td align="right">2.5</td>
-<td align="left">9.9</td>
-</tr>
-<tr class="odd">
-<td align="left">ReservaVentilatoria</td>
-<td align="center">1</td>
-<td align="center">8</td>
-<td align="left">0</td>
-<td align="right">non-parametric</td>
-<td align="right">30.9</td>
-<td align="right">45.5</td>
-<td align="right">25.8</td>
-<td align="right">9.1</td>
-<td align="left">24.8</td>
-</tr>
-<tr class="even">
-<td align="left">ReservaVentilatoria</td>
-<td align="center">2</td>
-<td align="center">8</td>
-<td align="left">0</td>
-<td align="right">parametric</td>
-<td align="right">42.7</td>
-<td align="right">41.3</td>
-<td align="right">10.0</td>
-<td align="right">3.5</td>
-<td align="left">15.2</td>
-</tr>
-<tr class="odd">
-<td align="left">SpO2final</td>
-<td align="center">1</td>
-<td align="center">8</td>
-<td align="left">0</td>
-<td align="right">non-parametric</td>
-<td align="right">93.8</td>
-<td align="right">97.0</td>
-<td align="right">6.5</td>
-<td align="right">2.3</td>
-<td align="left">4.8</td>
-</tr>
-<tr class="even">
-<td align="left">SpO2final</td>
-<td align="center">2</td>
-<td align="center">8</td>
-<td align="left">0</td>
-<td align="right">parametric</td>
-<td align="right">87.5</td>
-<td align="right">88.5</td>
-<td align="right">4.6</td>
-<td align="right">1.6</td>
-<td align="left">6.2</td>
-</tr>
-<tr class="odd">
-<td align="left">VEF1percprevist</td>
-<td align="center">1</td>
-<td align="center">8</td>
-<td align="left">0</td>
-<td align="right">parametric</td>
-<td align="right">65.8</td>
-<td align="right">67.6</td>
-<td align="right">29.2</td>
-<td align="right">10.3</td>
-<td align="left">52.2</td>
-</tr>
-<tr class="even">
-<td align="left">VEF1percprevist</td>
-<td align="center">2</td>
-<td align="center">8</td>
-<td align="left">0</td>
-<td align="right">non-parametric</td>
-<td align="right">37.7</td>
-<td align="right">29.0</td>
-<td align="right">19.8</td>
-<td align="right">7.0</td>
-<td align="left">10.7</td>
-</tr>
-<tr class="odd">
-<td align="left">VEabsolutofinal</td>
-<td align="center">1</td>
-<td align="center">8</td>
-<td align="left">0</td>
-<td align="right">parametric</td>
-<td align="right">40.5</td>
-<td align="right">37.0</td>
-<td align="right">17.8</td>
-<td align="right">6.3</td>
-<td align="left">27.9</td>
-</tr>
-<tr class="even">
-<td align="left">VEabsolutofinal</td>
-<td align="center">2</td>
-<td align="center">8</td>
-<td align="left">0</td>
-<td align="right">parametric</td>
-<td align="right">47.9</td>
-<td align="right">48.0</td>
-<td align="right">13.8</td>
-<td align="right">4.9</td>
-<td align="left">20.3</td>
-</tr>
-<tr class="odd">
-<td align="left">VO2mLkgminfinal</td>
-<td align="center">1</td>
-<td align="center">8</td>
-<td align="left">0</td>
-<td align="right">parametric</td>
-<td align="right">32.6</td>
-<td align="right">32.7</td>
-<td align="right">3.9</td>
-<td align="right">1.4</td>
-<td align="left">6.0</td>
-</tr>
-<tr class="even">
-<td align="left">VO2mLkgminfinal</td>
-<td align="center">2</td>
-<td align="center">8</td>
-<td align="left">0</td>
-<td align="right">parametric</td>
-<td align="right">32.9</td>
-<td align="right">34.0</td>
-<td align="right">6.6</td>
-<td align="right">2.3</td>
-<td align="left">6.6</td>
+<tr>
+<td style="text-align:left;">
+VO2mLkgminfinal
+</td>
+<td style="text-align:left;">
+Welch Two Sample t-test
+</td>
+<td style="text-align:right;">
+11.32
+</td>
+<td style="text-align:right;">
+-0.11
+</td>
+<td style="text-align:right;">
+0.91
+</td>
+<td style="text-align:left;">
+<ul>
+<li></td>
+<td style="text-align:right;">
+-0.06
+</td>
+<td style="text-align:right;">
+-6.23
+</td>
+<td style="text-align:right;">
+5.63
+</td>
 </tr>
 </tbody>
-</table>
-</div>
-</div>
-<div id="análise-de-frequências" class="section level3">
-<h3>Análise de Frequências</h3>
+</table></li>
+</ul></li>
+</ul></li>
+</ul></li>
+</ul></li>
+</ul></li>
+</ul></li>
+</ul>
+<pre class="r"><code>age_diffs &lt;- calc_diffs(data, unlist(targets$age_diffs), normality, p.value, &quot;Categoria_Idade&quot;)</code></pre>
+<pre><code>## Warning in wilcox.test.default(x = DATA[[1L]], y = DATA[[2L]], ...): cannot
+## compute exact p-value with ties
+
+## Warning in wilcox.test.default(x = DATA[[1L]], y = DATA[[2L]], ...): cannot
+## compute exact confidence intervals with ties</code></pre>
+<pre class="r"><code>custom_kable(age_diffs, digits = 2)</code></pre>
 <table>
 <thead>
-<tr class="header">
-<th align="left">Variável</th>
-<th align="right">Grupo</th>
-<th align="right">Valor</th>
-<th align="right">Freq_abs</th>
-<th align="right">Freq_rel</th>
+<tr>
+<th style="text-align:left;">
+Variável
+</th>
+<th style="text-align:left;">
+Teste
+</th>
+<th style="text-align:right;">
+df
+</th>
+<th style="text-align:right;">
+Estatística
+</th>
+<th style="text-align:right;">
+p_value
+</th>
+<th style="text-align:left;">
+Significância
+</th>
+<th style="text-align:right;">
+Effect_Size
+</th>
+<th style="text-align:right;">
+CI_min
+</th>
+<th style="text-align:right;">
+CI_max
+</th>
 </tr>
 </thead>
 <tbody>
-<tr class="odd">
-<td align="left">DNAcat243</td>
-<td align="right">1</td>
-<td align="right">1</td>
-<td align="right">5</td>
-<td align="right">0.62</td>
+<tr>
+<td style="text-align:left;">
+VEF1percprevist
+</td>
+<td style="text-align:left;">
+Wilcoxon rank sum exact test
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+45.00
+</td>
+<td style="text-align:right;">
+0.19
+</td>
+<td style="text-align:left;">
+<ul>
+<li></td>
+<td style="text-align:right;">
+0.20
+</td>
+<td style="text-align:right;">
+-8.79
+</td>
+<td style="text-align:right;">
+57.67
+</td>
 </tr>
-<tr class="even">
-<td align="left">DNAcat243</td>
-<td align="right">1</td>
-<td align="right">2</td>
-<td align="right">3</td>
-<td align="right">0.38</td>
+<tr>
+<td style="text-align:left;">
+DNA_corrigido15x
+</td>
+<td style="text-align:left;">
+Welch Two Sample t-test
+</td>
+<td style="text-align:right;">
+12.10
+</td>
+<td style="text-align:right;">
+-0.83
+</td>
+<td style="text-align:right;">
+0.42
+</td>
+<td style="text-align:left;">
+<ul>
+<li></td>
+<td style="text-align:right;">
+-0.42
+</td>
+<td style="text-align:right;">
+-254.01
+</td>
+<td style="text-align:right;">
+113.40
+</td>
 </tr>
-<tr class="odd">
-<td align="left">DNAcat243</td>
-<td align="right">2</td>
-<td align="right">1</td>
-<td align="right">1</td>
-<td align="right">0.12</td>
+<tr>
+<td style="text-align:left;">
+IMC_absoluto
+</td>
+<td style="text-align:left;">
+Welch Two Sample t-test
+</td>
+<td style="text-align:right;">
+9.18
+</td>
+<td style="text-align:right;">
+-0.67
+</td>
+<td style="text-align:right;">
+0.52
+</td>
+<td style="text-align:left;">
+<ul>
+<li></td>
+<td style="text-align:right;">
+-0.34
+</td>
+<td style="text-align:right;">
+-4.19
+</td>
+<td style="text-align:right;">
+2.27
+</td>
 </tr>
-<tr class="even">
-<td align="left">DNAcat243</td>
-<td align="right">2</td>
-<td align="right">2</td>
-<td align="right">7</td>
-<td align="right">0.88</td>
+<tr>
+<td style="text-align:left;">
+VO2mLkgminfinal
+</td>
+<td style="text-align:left;">
+Welch Two Sample t-test
+</td>
+<td style="text-align:right;">
+12.04
+</td>
+<td style="text-align:right;">
+0.37
+</td>
+<td style="text-align:right;">
+0.72
+</td>
+<td style="text-align:left;">
+<ul>
+<li></td>
+<td style="text-align:right;">
+0.19
+</td>
+<td style="text-align:right;">
+-4.86
+</td>
+<td style="text-align:right;">
+6.86
+</td>
 </tr>
-<tr class="odd">
-<td align="left">Internacao</td>
-<td align="right">1</td>
-<td align="right">1</td>
-<td align="right">3</td>
-<td align="right">0.38</td>
-</tr>
-<tr class="even">
-<td align="left">Internacao</td>
-<td align="right">1</td>
-<td align="right">2</td>
-<td align="right">5</td>
-<td align="right">0.62</td>
-</tr>
-<tr class="odd">
-<td align="left">Internacao</td>
-<td align="right">2</td>
-<td align="right">1</td>
-<td align="right">4</td>
-<td align="right">0.50</td>
-</tr>
-<tr class="even">
-<td align="left">Internacao</td>
-<td align="right">2</td>
-<td align="right">2</td>
-<td align="right">4</td>
-<td align="right">0.50</td>
-</tr>
-<tr class="odd">
-<td align="left">Mutacao</td>
-<td align="right">1</td>
-<td align="right">1</td>
-<td align="right">2</td>
-<td align="right">0.25</td>
-</tr>
-<tr class="even">
-<td align="left">Mutacao</td>
-<td align="right">1</td>
-<td align="right">2</td>
-<td align="right">3</td>
-<td align="right">0.38</td>
-</tr>
-<tr class="odd">
-<td align="left">Mutacao</td>
-<td align="right">1</td>
-<td align="right">3</td>
-<td align="right">3</td>
-<td align="right">0.38</td>
-</tr>
-<tr class="even">
-<td align="left">Mutacao</td>
-<td align="right">2</td>
-<td align="right">1</td>
-<td align="right">6</td>
-<td align="right">0.75</td>
-</tr>
-<tr class="odd">
-<td align="left">Mutacao</td>
-<td align="right">2</td>
-<td align="right">3</td>
-<td align="right">2</td>
-<td align="right">0.25</td>
-</tr>
-<tr class="even">
-<td align="left">Pseudomonas_cronico</td>
-<td align="right">1</td>
-<td align="right">1</td>
-<td align="right">2</td>
-<td align="right">0.25</td>
-</tr>
-<tr class="odd">
-<td align="left">Pseudomonas_cronico</td>
-<td align="right">1</td>
-<td align="right">2</td>
-<td align="right">6</td>
-<td align="right">0.75</td>
-</tr>
-<tr class="even">
-<td align="left">Pseudomonas_cronico</td>
-<td align="right">2</td>
-<td align="right">1</td>
-<td align="right">3</td>
-<td align="right">0.38</td>
-</tr>
-<tr class="odd">
-<td align="left">Pseudomonas_cronico</td>
-<td align="right">2</td>
-<td align="right">2</td>
-<td align="right">5</td>
-<td align="right">0.62</td>
-</tr>
-<tr class="even">
-<td align="left">SPO2cat</td>
-<td align="right">1</td>
-<td align="right">1</td>
-<td align="right">2</td>
-<td align="right">0.25</td>
-</tr>
-<tr class="odd">
-<td align="left">SPO2cat</td>
-<td align="right">1</td>
-<td align="right">2</td>
-<td align="right">6</td>
-<td align="right">0.75</td>
-</tr>
-<tr class="even">
-<td align="left">SPO2cat</td>
-<td align="right">2</td>
-<td align="right">1</td>
-<td align="right">5</td>
-<td align="right">0.62</td>
-</tr>
-<tr class="odd">
-<td align="left">SPO2cat</td>
-<td align="right">2</td>
-<td align="right">2</td>
-<td align="right">3</td>
-<td align="right">0.38</td>
-</tr>
-<tr class="even">
-<td align="left">Sexo</td>
-<td align="right">1</td>
-<td align="right">1</td>
-<td align="right">6</td>
-<td align="right">0.75</td>
-</tr>
-<tr class="odd">
-<td align="left">Sexo</td>
-<td align="right">1</td>
-<td align="right">2</td>
-<td align="right">2</td>
-<td align="right">0.25</td>
-</tr>
-<tr class="even">
-<td align="left">Sexo</td>
-<td align="right">2</td>
-<td align="right">1</td>
-<td align="right">4</td>
-<td align="right">0.50</td>
-</tr>
-<tr class="odd">
-<td align="left">Sexo</td>
-<td align="right">2</td>
-<td align="right">2</td>
-<td align="right">4</td>
-<td align="right">0.50</td>
-</tr>
-<tr class="even">
-<td align="left">VO2categ</td>
-<td align="right">1</td>
-<td align="right">1</td>
-<td align="right">3</td>
-<td align="right">0.38</td>
-</tr>
-<tr class="odd">
-<td align="left">VO2categ</td>
-<td align="right">1</td>
-<td align="right">2</td>
-<td align="right">5</td>
-<td align="right">0.62</td>
-</tr>
-<tr class="even">
-<td align="left">VO2categ</td>
-<td align="right">2</td>
-<td align="right">1</td>
-<td align="right">2</td>
-<td align="right">0.25</td>
-</tr>
-<tr class="odd">
-<td align="left">VO2categ</td>
-<td align="right">2</td>
-<td align="right">2</td>
-<td align="right">6</td>
-<td align="right">0.75</td>
+<tr>
+<td style="text-align:left;">
+Dias_internacao
+</td>
+<td style="text-align:left;">
+Wilcoxon rank sum test with continuity correction
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+30.00
+</td>
+<td style="text-align:right;">
+0.86
+</td>
+<td style="text-align:left;">
+<ul>
+<li></td>
+<td style="text-align:right;">
+-0.03
+</td>
+<td style="text-align:right;">
+-14.00
+</td>
+<td style="text-align:right;">
+14.00
+</td>
 </tr>
 </tbody>
-</table>
-</div>
-<div id="diferenças-entre-grupos" class="section level3">
-<h3>Diferenças entre Grupos</h3>
+</table></li>
+</ul></li>
+</ul></li>
+</ul></li>
+</ul></li>
+</ul>
+<pre class="r"><code>corrs &lt;- calc_corrs(data, unlist(targets$corrs), normality, p.value)</code></pre>
+<pre><code>## Warning in cor.test.default(data[[pair[1]]], data[[pair[2]]], method =
+## &quot;spearman&quot;): Cannot compute exact p-value with ties</code></pre>
+<pre><code>## Warning in cor.test.default(data[[pair[1]]], data[[pair[2]]], method =
+## &quot;spearman&quot;): Cannot compute exact p-value with ties
+
+## Warning in cor.test.default(data[[pair[1]]], data[[pair[2]]], method =
+## &quot;spearman&quot;): Cannot compute exact p-value with ties
+
+## Warning in cor.test.default(data[[pair[1]]], data[[pair[2]]], method =
+## &quot;spearman&quot;): Cannot compute exact p-value with ties
+
+## Warning in cor.test.default(data[[pair[1]]], data[[pair[2]]], method =
+## &quot;spearman&quot;): Cannot compute exact p-value with ties
+
+## Warning in cor.test.default(data[[pair[1]]], data[[pair[2]]], method =
+## &quot;spearman&quot;): Cannot compute exact p-value with ties
+
+## Warning in cor.test.default(data[[pair[1]]], data[[pair[2]]], method =
+## &quot;spearman&quot;): Cannot compute exact p-value with ties
+
+## Warning in cor.test.default(data[[pair[1]]], data[[pair[2]]], method =
+## &quot;spearman&quot;): Cannot compute exact p-value with ties
+
+## Warning in cor.test.default(data[[pair[1]]], data[[pair[2]]], method =
+## &quot;spearman&quot;): Cannot compute exact p-value with ties
+
+## Warning in cor.test.default(data[[pair[1]]], data[[pair[2]]], method =
+## &quot;spearman&quot;): Cannot compute exact p-value with ties
+
+## Warning in cor.test.default(data[[pair[1]]], data[[pair[2]]], method =
+## &quot;spearman&quot;): Cannot compute exact p-value with ties
+
+## Warning in cor.test.default(data[[pair[1]]], data[[pair[2]]], method =
+## &quot;spearman&quot;): Cannot compute exact p-value with ties
+
+## Warning in cor.test.default(data[[pair[1]]], data[[pair[2]]], method =
+## &quot;spearman&quot;): Cannot compute exact p-value with ties</code></pre>
+<pre class="r"><code>custom_kable(corrs, digits = 2)</code></pre>
 <table>
-<colgroup>
-<col width="12%" />
-<col width="37%" />
-<col width="4%" />
-<col width="8%" />
-<col width="5%" />
-<col width="10%" />
-<col width="8%" />
-<col width="5%" />
-<col width="5%" />
-</colgroup>
 <thead>
-<tr class="header">
-<th align="left">Variável</th>
-<th align="left">Teste</th>
-<th align="right">df</th>
-<th align="right">Estatística</th>
-<th align="right">p_value</th>
-<th align="left">Significância</th>
-<th align="right">Effect_Size</th>
-<th align="right">CI_min</th>
-<th align="right">CI_max</th>
+<tr>
+<th style="text-align:left;">
+Variável1
+</th>
+<th style="text-align:left;">
+Variável2
+</th>
+<th style="text-align:left;">
+Teste
+</th>
+<th style="text-align:right;">
+df
+</th>
+<th style="text-align:right;">
+Correlação
+</th>
+<th style="text-align:right;">
+p_value
+</th>
+<th style="text-align:left;">
+Significância
+</th>
+<th style="text-align:right;">
+CI_lower
+</th>
+<th style="text-align:right;">
+CI_upper
+</th>
 </tr>
 </thead>
 <tbody>
-<tr class="odd">
-<td align="left">VEF1percprevist</td>
-<td align="left">Wilcoxon rank sum exact test</td>
-<td align="right">NA</td>
-<td align="right">56.00</td>
-<td align="right">0.01</td>
-<td align="left">*</td>
-<td align="right">0.38</td>
-<td align="right">5.09</td>
-<td align="right">60.38</td>
+<tr>
+<td style="text-align:left;">
+DNA_corrigido15x
+</td>
+<td style="text-align:left;">
+Idade
+</td>
+<td style="text-align:left;">
+Pearson’s product-moment correlation
+</td>
+<td style="text-align:right;">
+14
+</td>
+<td style="text-align:right;">
+0.19
+</td>
+<td style="text-align:right;">
+0.49
+</td>
+<td style="text-align:left;">
+<ul>
+<li></td>
+<td style="text-align:right;">
+-0.34
+</td>
+<td style="text-align:right;">
+0.62
+</td>
 </tr>
-<tr class="even">
-<td align="left">DNA_corrigido15x</td>
-<td align="left">Welch Two Sample t-test</td>
-<td align="right">13.45</td>
-<td align="right">-2.26</td>
-<td align="right">0.04</td>
-<td align="left">*</td>
-<td align="right">-1.13</td>
-<td align="right">-326.42</td>
-<td align="right">-7.57</td>
+<tr>
+<td style="text-align:left;">
+DNA_corrigido15x
+</td>
+<td style="text-align:left;">
+Dias_internacao
+</td>
+<td style="text-align:left;">
+Spearman’s rank correlation rho
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+0.27
+</td>
+<td style="text-align:right;">
+0.31
+</td>
+<td style="text-align:left;">
+<ul>
+<li></td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
 </tr>
-<tr class="odd">
-<td align="left">SpO2final</td>
-<td align="left">Welch Two Sample t-test</td>
-<td align="right">12.63</td>
-<td align="right">2.23</td>
-<td align="right">0.04</td>
-<td align="left">*</td>
-<td align="right">1.11</td>
-<td align="right">0.17</td>
-<td align="right">12.33</td>
+<tr>
+<td style="text-align:left;">
+DNA_corrigido15x
+</td>
+<td style="text-align:left;">
+IMC_absoluto
+</td>
+<td style="text-align:left;">
+Pearson’s product-moment correlation
+</td>
+<td style="text-align:right;">
+14
+</td>
+<td style="text-align:right;">
+0.00
+</td>
+<td style="text-align:right;">
+0.99
+</td>
+<td style="text-align:left;">
+<ul>
+<li></td>
+<td style="text-align:right;">
+-0.50
+</td>
+<td style="text-align:right;">
+0.49
+</td>
 </tr>
-<tr class="even">
-<td align="left">Idade</td>
-<td align="left">Welch Two Sample t-test</td>
-<td align="right">13.94</td>
-<td align="right">-1.08</td>
-<td align="right">0.30</td>
-<td align="left">-</td>
-<td align="right">-0.54</td>
-<td align="right">-11.41</td>
-<td align="right">3.75</td>
+<tr>
+<td style="text-align:left;">
+DNA_corrigido15x
+</td>
+<td style="text-align:left;">
+VEF1percprevist
+</td>
+<td style="text-align:left;">
+Spearman’s rank correlation rho
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+-0.46
+</td>
+<td style="text-align:right;">
+0.08
+</td>
+<td style="text-align:left;">
+<ul>
+<li></td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
 </tr>
-<tr class="odd">
-<td align="left">Dias_internacao</td>
-<td align="left">Wilcoxon rank sum test with continuity correction</td>
-<td align="right">NA</td>
-<td align="right">29.00</td>
-<td align="right">0.77</td>
-<td align="left">-</td>
-<td align="right">-0.05</td>
-<td align="right">-14.00</td>
-<td align="right">14.00</td>
+<tr>
+<td style="text-align:left;">
+DNA_corrigido15x
+</td>
+<td style="text-align:left;">
+VO2mLkgminfinal
+</td>
+<td style="text-align:left;">
+Pearson’s product-moment correlation
+</td>
+<td style="text-align:right;">
+14
+</td>
+<td style="text-align:right;">
+-0.19
+</td>
+<td style="text-align:right;">
+0.48
+</td>
+<td style="text-align:left;">
+<ul>
+<li></td>
+<td style="text-align:right;">
+-0.63
+</td>
+<td style="text-align:right;">
+0.34
+</td>
 </tr>
-<tr class="even">
-<td align="left">IMC_absoluto</td>
-<td align="left">Welch Two Sample t-test</td>
-<td align="right">7.57</td>
-<td align="right">-0.27</td>
-<td align="right">0.79</td>
-<td align="left">-</td>
-<td align="right">-0.13</td>
-<td align="right">-3.77</td>
-<td align="right">2.99</td>
+<tr>
+<td style="text-align:left;">
+DNA_corrigido15x
+</td>
+<td style="text-align:left;">
+ReservaVentilatoria
+</td>
+<td style="text-align:left;">
+Spearman’s rank correlation rho
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+0.20
+</td>
+<td style="text-align:right;">
+0.45
+</td>
+<td style="text-align:left;">
+<ul>
+<li></td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
 </tr>
-<tr class="odd">
-<td align="left">VO2mLkgminfinal</td>
-<td align="left">Welch Two Sample t-test</td>
-<td align="right">11.32</td>
-<td align="right">-0.11</td>
-<td align="right">0.91</td>
-<td align="left">-</td>
-<td align="right">-0.06</td>
-<td align="right">-6.23</td>
-<td align="right">5.63</td>
+<tr>
+<td style="text-align:left;">
+Idade
+</td>
+<td style="text-align:left;">
+Dias_internacao
+</td>
+<td style="text-align:left;">
+Spearman’s rank correlation rho
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+0.21
+</td>
+<td style="text-align:right;">
+0.43
+</td>
+<td style="text-align:left;">
+<ul>
+<li></td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Idade
+</td>
+<td style="text-align:left;">
+IMC_absoluto
+</td>
+<td style="text-align:left;">
+Pearson’s product-moment correlation
+</td>
+<td style="text-align:right;">
+14
+</td>
+<td style="text-align:right;">
+0.25
+</td>
+<td style="text-align:right;">
+0.36
+</td>
+<td style="text-align:left;">
+<ul>
+<li></td>
+<td style="text-align:right;">
+-0.28
+</td>
+<td style="text-align:right;">
+0.66
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Idade
+</td>
+<td style="text-align:left;">
+VEF1percprevist
+</td>
+<td style="text-align:left;">
+Spearman’s rank correlation rho
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+-0.35
+</td>
+<td style="text-align:right;">
+0.18
+</td>
+<td style="text-align:left;">
+<ul>
+<li></td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Idade
+</td>
+<td style="text-align:left;">
+VO2mLkgminfinal
+</td>
+<td style="text-align:left;">
+Pearson’s product-moment correlation
+</td>
+<td style="text-align:right;">
+14
+</td>
+<td style="text-align:right;">
+-0.01
+</td>
+<td style="text-align:right;">
+0.98
+</td>
+<td style="text-align:left;">
+<ul>
+<li></td>
+<td style="text-align:right;">
+-0.50
+</td>
+<td style="text-align:right;">
+0.49
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Idade
+</td>
+<td style="text-align:left;">
+ReservaVentilatoria
+</td>
+<td style="text-align:left;">
+Spearman’s rank correlation rho
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+0.13
+</td>
+<td style="text-align:right;">
+0.62
+</td>
+<td style="text-align:left;">
+<ul>
+<li></td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Dias_internacao
+</td>
+<td style="text-align:left;">
+IMC_absoluto
+</td>
+<td style="text-align:left;">
+Spearman’s rank correlation rho
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+-0.02
+</td>
+<td style="text-align:right;">
+0.95
+</td>
+<td style="text-align:left;">
+<ul>
+<li></td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Dias_internacao
+</td>
+<td style="text-align:left;">
+VEF1percprevist
+</td>
+<td style="text-align:left;">
+Spearman’s rank correlation rho
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+-0.61
+</td>
+<td style="text-align:right;">
+0.01
+</td>
+<td style="text-align:left;">
+<ul>
+<li></td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Dias_internacao
+</td>
+<td style="text-align:left;">
+VO2mLkgminfinal
+</td>
+<td style="text-align:left;">
+Spearman’s rank correlation rho
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+-0.58
+</td>
+<td style="text-align:right;">
+0.02
+</td>
+<td style="text-align:left;">
+<ul>
+<li></td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Dias_internacao
+</td>
+<td style="text-align:left;">
+ReservaVentilatoria
+</td>
+<td style="text-align:left;">
+Spearman’s rank correlation rho
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+-0.47
+</td>
+<td style="text-align:right;">
+0.06
+</td>
+<td style="text-align:left;">
+<ul>
+<li></td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+IMC_absoluto
+</td>
+<td style="text-align:left;">
+VEF1percprevist
+</td>
+<td style="text-align:left;">
+Spearman’s rank correlation rho
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+-0.13
+</td>
+<td style="text-align:right;">
+0.62
+</td>
+<td style="text-align:left;">
+<ul>
+<li></td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+IMC_absoluto
+</td>
+<td style="text-align:left;">
+VO2mLkgminfinal
+</td>
+<td style="text-align:left;">
+Pearson’s product-moment correlation
+</td>
+<td style="text-align:right;">
+14
+</td>
+<td style="text-align:right;">
+0.18
+</td>
+<td style="text-align:right;">
+0.50
+</td>
+<td style="text-align:left;">
+<ul>
+<li></td>
+<td style="text-align:right;">
+-0.35
+</td>
+<td style="text-align:right;">
+0.62
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+IMC_absoluto
+</td>
+<td style="text-align:left;">
+ReservaVentilatoria
+</td>
+<td style="text-align:left;">
+Spearman’s rank correlation rho
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+0.02
+</td>
+<td style="text-align:right;">
+0.94
+</td>
+<td style="text-align:left;">
+<ul>
+<li></td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+VEF1percprevist
+</td>
+<td style="text-align:left;">
+VO2mLkgminfinal
+</td>
+<td style="text-align:left;">
+Spearman’s rank correlation rho
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+0.24
+</td>
+<td style="text-align:right;">
+0.36
+</td>
+<td style="text-align:left;">
+<ul>
+<li></td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+VEF1percprevist
+</td>
+<td style="text-align:left;">
+ReservaVentilatoria
+</td>
+<td style="text-align:left;">
+Spearman’s rank correlation rho
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+0.30
+</td>
+<td style="text-align:right;">
+0.26
+</td>
+<td style="text-align:left;">
+<ul>
+<li></td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+VO2mLkgminfinal
+</td>
+<td style="text-align:left;">
+ReservaVentilatoria
+</td>
+<td style="text-align:left;">
+Spearman’s rank correlation rho
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+0.03
+</td>
+<td style="text-align:right;">
+0.92
+</td>
+<td style="text-align:left;">
+<ul>
+<li></td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
 </tr>
 </tbody>
-</table>
-</div>
-<div id="diferenças-pelo-efeito-da-idade" class="section level3">
-<h3>Diferenças pelo Efeito da Idade</h3>
-<table>
-<colgroup>
-<col width="12%" />
-<col width="37%" />
-<col width="4%" />
-<col width="8%" />
-<col width="5%" />
-<col width="10%" />
-<col width="8%" />
-<col width="5%" />
-<col width="5%" />
-</colgroup>
-<thead>
-<tr class="header">
-<th align="left">Variável</th>
-<th align="left">Teste</th>
-<th align="right">df</th>
-<th align="right">Estatística</th>
-<th align="right">p_value</th>
-<th align="left">Significância</th>
-<th align="right">Effect_Size</th>
-<th align="right">CI_min</th>
-<th align="right">CI_max</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td align="left">VEF1percprevist</td>
-<td align="left">Wilcoxon rank sum exact test</td>
-<td align="right">NA</td>
-<td align="right">45.00</td>
-<td align="right">0.19</td>
-<td align="left">-</td>
-<td align="right">0.20</td>
-<td align="right">-8.79</td>
-<td align="right">57.67</td>
-</tr>
-<tr class="even">
-<td align="left">DNA_corrigido15x</td>
-<td align="left">Welch Two Sample t-test</td>
-<td align="right">12.10</td>
-<td align="right">-0.83</td>
-<td align="right">0.42</td>
-<td align="left">-</td>
-<td align="right">-0.42</td>
-<td align="right">-254.01</td>
-<td align="right">113.40</td>
-</tr>
-<tr class="odd">
-<td align="left">IMC_absoluto</td>
-<td align="left">Welch Two Sample t-test</td>
-<td align="right">9.18</td>
-<td align="right">-0.67</td>
-<td align="right">0.52</td>
-<td align="left">-</td>
-<td align="right">-0.34</td>
-<td align="right">-4.19</td>
-<td align="right">2.27</td>
-</tr>
-<tr class="even">
-<td align="left">VO2mLkgminfinal</td>
-<td align="left">Welch Two Sample t-test</td>
-<td align="right">12.04</td>
-<td align="right">0.37</td>
-<td align="right">0.72</td>
-<td align="left">-</td>
-<td align="right">0.19</td>
-<td align="right">-4.86</td>
-<td align="right">6.86</td>
-</tr>
-<tr class="odd">
-<td align="left">Dias_internacao</td>
-<td align="left">Wilcoxon rank sum test with continuity correction</td>
-<td align="right">NA</td>
-<td align="right">30.00</td>
-<td align="right">0.86</td>
-<td align="left">-</td>
-<td align="right">-0.03</td>
-<td align="right">-14.00</td>
-<td align="right">14.00</td>
-</tr>
-</tbody>
-</table>
-</div>
-<div id="correlações-entre-variáveis-1" class="section level3">
-<h3>Correlações entre Variáveis</h3>
-<table>
-<colgroup>
-<col width="13%" />
-<col width="15%" />
-<col width="28%" />
-<col width="2%" />
-<col width="8%" />
-<col width="6%" />
-<col width="10%" />
-<col width="7%" />
-<col width="7%" />
-</colgroup>
-<thead>
-<tr class="header">
-<th align="left">Variável1</th>
-<th align="left">Variável2</th>
-<th align="left">Teste</th>
-<th align="right">df</th>
-<th align="right">Correlação</th>
-<th align="right">p_value</th>
-<th align="left">Significância</th>
-<th align="right">CI_lower</th>
-<th align="right">CI_upper</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td align="left">DNA_corrigido15x</td>
-<td align="left">Idade</td>
-<td align="left">Pearson’s product-moment correlation</td>
-<td align="right">14</td>
-<td align="right">0.19</td>
-<td align="right">0.49</td>
-<td align="left">-</td>
-<td align="right">-0.34</td>
-<td align="right">0.62</td>
-</tr>
-<tr class="even">
-<td align="left">DNA_corrigido15x</td>
-<td align="left">Dias_internacao</td>
-<td align="left">Spearman’s rank correlation rho</td>
-<td align="right">NA</td>
-<td align="right">0.27</td>
-<td align="right">0.31</td>
-<td align="left">-</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-</tr>
-<tr class="odd">
-<td align="left">DNA_corrigido15x</td>
-<td align="left">IMC_absoluto</td>
-<td align="left">Pearson’s product-moment correlation</td>
-<td align="right">14</td>
-<td align="right">0.00</td>
-<td align="right">0.99</td>
-<td align="left">-</td>
-<td align="right">-0.50</td>
-<td align="right">0.49</td>
-</tr>
-<tr class="even">
-<td align="left">DNA_corrigido15x</td>
-<td align="left">VEF1percprevist</td>
-<td align="left">Spearman’s rank correlation rho</td>
-<td align="right">NA</td>
-<td align="right">-0.46</td>
-<td align="right">0.08</td>
-<td align="left">-</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-</tr>
-<tr class="odd">
-<td align="left">DNA_corrigido15x</td>
-<td align="left">VO2mLkgminfinal</td>
-<td align="left">Pearson’s product-moment correlation</td>
-<td align="right">14</td>
-<td align="right">-0.19</td>
-<td align="right">0.48</td>
-<td align="left">-</td>
-<td align="right">-0.63</td>
-<td align="right">0.34</td>
-</tr>
-<tr class="even">
-<td align="left">DNA_corrigido15x</td>
-<td align="left">ReservaVentilatoria</td>
-<td align="left">Spearman’s rank correlation rho</td>
-<td align="right">NA</td>
-<td align="right">0.20</td>
-<td align="right">0.45</td>
-<td align="left">-</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-</tr>
-<tr class="odd">
-<td align="left">Idade</td>
-<td align="left">Dias_internacao</td>
-<td align="left">Spearman’s rank correlation rho</td>
-<td align="right">NA</td>
-<td align="right">0.21</td>
-<td align="right">0.43</td>
-<td align="left">-</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-</tr>
-<tr class="even">
-<td align="left">Idade</td>
-<td align="left">IMC_absoluto</td>
-<td align="left">Pearson’s product-moment correlation</td>
-<td align="right">14</td>
-<td align="right">0.25</td>
-<td align="right">0.36</td>
-<td align="left">-</td>
-<td align="right">-0.28</td>
-<td align="right">0.66</td>
-</tr>
-<tr class="odd">
-<td align="left">Idade</td>
-<td align="left">VEF1percprevist</td>
-<td align="left">Spearman’s rank correlation rho</td>
-<td align="right">NA</td>
-<td align="right">-0.35</td>
-<td align="right">0.18</td>
-<td align="left">-</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-</tr>
-<tr class="even">
-<td align="left">Idade</td>
-<td align="left">VO2mLkgminfinal</td>
-<td align="left">Pearson’s product-moment correlation</td>
-<td align="right">14</td>
-<td align="right">-0.01</td>
-<td align="right">0.98</td>
-<td align="left">-</td>
-<td align="right">-0.50</td>
-<td align="right">0.49</td>
-</tr>
-<tr class="odd">
-<td align="left">Idade</td>
-<td align="left">ReservaVentilatoria</td>
-<td align="left">Spearman’s rank correlation rho</td>
-<td align="right">NA</td>
-<td align="right">0.13</td>
-<td align="right">0.62</td>
-<td align="left">-</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-</tr>
-<tr class="even">
-<td align="left">Dias_internacao</td>
-<td align="left">IMC_absoluto</td>
-<td align="left">Spearman’s rank correlation rho</td>
-<td align="right">NA</td>
-<td align="right">-0.02</td>
-<td align="right">0.95</td>
-<td align="left">-</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-</tr>
-<tr class="odd">
-<td align="left">Dias_internacao</td>
-<td align="left">VEF1percprevist</td>
-<td align="left">Spearman’s rank correlation rho</td>
-<td align="right">NA</td>
-<td align="right">-0.61</td>
-<td align="right">0.01</td>
-<td align="left">*</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-</tr>
-<tr class="even">
-<td align="left">Dias_internacao</td>
-<td align="left">VO2mLkgminfinal</td>
-<td align="left">Spearman’s rank correlation rho</td>
-<td align="right">NA</td>
-<td align="right">-0.58</td>
-<td align="right">0.02</td>
-<td align="left">*</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-</tr>
-<tr class="odd">
-<td align="left">Dias_internacao</td>
-<td align="left">ReservaVentilatoria</td>
-<td align="left">Spearman’s rank correlation rho</td>
-<td align="right">NA</td>
-<td align="right">-0.47</td>
-<td align="right">0.06</td>
-<td align="left">-</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-</tr>
-<tr class="even">
-<td align="left">IMC_absoluto</td>
-<td align="left">VEF1percprevist</td>
-<td align="left">Spearman’s rank correlation rho</td>
-<td align="right">NA</td>
-<td align="right">-0.13</td>
-<td align="right">0.62</td>
-<td align="left">-</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-</tr>
-<tr class="odd">
-<td align="left">IMC_absoluto</td>
-<td align="left">VO2mLkgminfinal</td>
-<td align="left">Pearson’s product-moment correlation</td>
-<td align="right">14</td>
-<td align="right">0.18</td>
-<td align="right">0.50</td>
-<td align="left">-</td>
-<td align="right">-0.35</td>
-<td align="right">0.62</td>
-</tr>
-<tr class="even">
-<td align="left">IMC_absoluto</td>
-<td align="left">ReservaVentilatoria</td>
-<td align="left">Spearman’s rank correlation rho</td>
-<td align="right">NA</td>
-<td align="right">0.02</td>
-<td align="right">0.94</td>
-<td align="left">-</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-</tr>
-<tr class="odd">
-<td align="left">VEF1percprevist</td>
-<td align="left">VO2mLkgminfinal</td>
-<td align="left">Spearman’s rank correlation rho</td>
-<td align="right">NA</td>
-<td align="right">0.24</td>
-<td align="right">0.36</td>
-<td align="left">-</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-</tr>
-<tr class="even">
-<td align="left">VEF1percprevist</td>
-<td align="left">ReservaVentilatoria</td>
-<td align="left">Spearman’s rank correlation rho</td>
-<td align="right">NA</td>
-<td align="right">0.30</td>
-<td align="right">0.26</td>
-<td align="left">-</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-</tr>
-<tr class="odd">
-<td align="left">VO2mLkgminfinal</td>
-<td align="left">ReservaVentilatoria</td>
-<td align="left">Spearman’s rank correlation rho</td>
-<td align="right">NA</td>
-<td align="right">0.03</td>
-<td align="right">0.92</td>
-<td align="left">-</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
-<div id="exportação-dos-resultados" class="section level2">
-<h2>Exportação dos Resultados</h2>
-<p>Os resultados foram exportados para arquivos CSV e excel para uso
-posterior. Os arquivos são salvos na pasta <code>output</code>. A tabela
-principal com os resultados finais está no arquivo “results.xlsx”, com
-cada análise em uma aba da planilha.</p>
-</div>
-<div id="conclusão" class="section level2">
-<h2>Conclusão</h2>
-<div id="acesso-ao-código-da-análise-e-aos-dados" class="section level3">
-<h3>Acesso ao código da análise e aos dados</h3>
-<p>Esse projeto, com o código R acima, assim como os dados associados
-podem ser acessado no seguinte link:</p>
-</div>
-<div id="limitações" class="section level3">
-<h3>Limitações:</h3>
-<p>A análise ainda carece de toda a parte de visualização dos resultados
-e dos dados, a qual deveria incluir gráficos de barra, boxplot, matriz
-de correlação, entre outros.</p>
-</div>
-</div>
+</table></li>
+</ul></li>
+</ul></li>
+</ul></li>
+</ul></li>
+</ul></li>
+</ul></li>
+</ul></li>
+</ul></li>
+</ul></li>
+</ul></li>
+</ul></li>
+</ul></li>
+</ul></li>
+</ul></li>
+</ul></li>
+</ul></li>
+</ul></li>
+</ul></li>
+</ul></li>
+</ul></li>
+</ul>
+<pre class="r"><code># Save data
+data_list &lt;- list(
+    normality,
+    stats,
+    freq,
+    diffs,
+    age_diffs,
+    corrs,
+    filter(corrs, Variável1 == &quot;DNA_corrigido15x&quot;)
+)
+
+data_file_names &lt;- c(
+    &quot;01_normality-tests.csv&quot;,
+    &quot;02_descriptive-statistics.csv&quot;,
+    &quot;03_cat-variables-frequency.csv&quot;,
+    &quot;04_group-differences.csv&quot;,
+    &quot;05_differences-by-age.csv&quot;,
+    &quot;06_variables-correlations.csv&quot;,
+    &quot;07_DNA_corrigido15x-corrs.csv&quot;
+)
+
+dir.create(&quot;output&quot;, showWarnings = FALSE)
+for (i in seq_along(data_list)) {
+    write_csv(data_list[[i]], paste0(&quot;output/&quot;, data_file_names[[i]]))
+}
+
+output_workbook &lt;- createWorkbook()
+walk2(data_list, data_file_names, ~ {
+    addWorksheet(output_workbook, sheetName = .y)
+    writeData(output_workbook, sheet = .y, .x)
+})
+saveWorkbook(output_workbook, &quot;output/results.xlsx&quot;, overwrite = TRUE)
+
+# rm(list = Filter(function(x) !inherits(get(x), &quot;tbl&quot;), ls()))</code></pre>
 
 
 
