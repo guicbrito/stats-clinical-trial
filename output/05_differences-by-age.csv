@@ -1,4 +1,4 @@
-Variable,Test,df,Statistic,p.value,Significance,Effect_Size,CI_min,CI_max
+Variável,Teste,df,Estatística,p_value,Significância,Effect_Size,CI_min,CI_max
 Dias_internacao,Wilcoxon rank sum test with continuity correction,NA,30,0.8616968286082338,-,-0.03125,-14.000075239425014,14.000031361881224
 IMC_absoluto,Welch Two Sample t-test,9.179725809778898,-0.6713743459022049,0.5185181145084108,-,-0.3356871729511024,-4.19048587200565,2.2679858720056503
 DNA_corrigido15x,Welch Two Sample t-test,12.098950689966742,-0.8330674161562157,0.4209480322551047,-,-0.4165337080781078,-254.0102323226489,113.40273232264894

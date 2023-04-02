@@ -1,4 +1,4 @@
-Variable1,Variable2,Test,df,Correlation,p.value,Significance,corr_CI_lower,corr_CI_upper
+Variável1,Variável2,Teste,df,Correlação,p_value,Significância,CI_lower,CI_upper
 DNA_corrigido15x,Idade,Pearson's product-moment correlation,14,0.18686028875585797,0.4883393766023191,-,-0.34037298803263305,0.6247010353058765
 DNA_corrigido15x,Dias_internacao,Spearman's rank correlation rho,NA,0.27016918028914777,0.31153993778886946,-,NA,NA
 DNA_corrigido15x,IMC_absoluto,Pearson's product-moment correlation,14,-0.0028064699228768477,0.9917698277146547,-,-0.4978192425277963,0.4935855272503828
@@ -11,8 +11,8 @@ Idade,VEF1percprevist,Spearman's rank correlation rho,NA,-0.3529411764705882,0.1
 Idade,VO2mLkgminfinal,Pearson's product-moment correlation,14,-0.0062883805720145404,0.9815600454509783,-,-0.5004337663832755,0.4909473222742397
 Idade,ReservaVentilatoria,Spearman's rank correlation rho,NA,0.13245036698368354,0.6248494815021566,-,NA,NA
 Dias_internacao,IMC_absoluto,Spearman's rank correlation rho,NA,-0.01626328032481155,0.9523312441552643,-,NA,NA
-Dias_internacao,VEF1percprevist,Spearman's rank correlation rho,NA,-0.6114993402129143,0.011835195375794184,-,NA,NA
-Dias_internacao,VO2mLkgminfinal,Spearman's rank correlation rho,NA,-0.5761439145925199,0.01950016037399741,-,NA,NA
+Dias_internacao,VEF1percprevist,Spearman's rank correlation rho,NA,-0.6114993402129143,0.011835195375794184,*,NA,NA
+Dias_internacao,VO2mLkgminfinal,Spearman's rank correlation rho,NA,-0.5761439145925199,0.01950016037399741,*,NA,NA
 Dias_internacao,ReservaVentilatoria,Spearman's rank correlation rho,NA,-0.47198230291477616,0.06491363560301656,-,NA,NA
 IMC_absoluto,VEF1percprevist,Spearman's rank correlation rho,NA,-0.1323529411764706,0.6248211979292546,-,NA,NA
 IMC_absoluto,VO2mLkgminfinal,Pearson's product-moment correlation,14,0.18164750707083424,0.50076504992463855,-,-0.34513503686791835,0.6213997436904665

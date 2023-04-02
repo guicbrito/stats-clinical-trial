@@ -1,4 +1,4 @@
-Variable1,Variable2,Test,df,Correlation,p.value,Significance,corr_CI_lower,corr_CI_upper
+Variável1,Variável2,Teste,df,Correlação,p_value,Significância,CI_lower,CI_upper
 DNA_corrigido15x,Idade,Pearson's product-moment correlation,14,0.18686028875585797,0.4883393766023191,-,-0.34037298803263305,0.6247010353058765
 DNA_corrigido15x,Dias_internacao,Spearman's rank correlation rho,NA,0.27016918028914777,0.31153993778886946,-,NA,NA
 DNA_corrigido15x,IMC_absoluto,Pearson's product-moment correlation,14,-0.0028064699228768477,0.9917698277146547,-,-0.4978192425277963,0.4935855272503828

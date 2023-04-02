@@ -4,19 +4,16 @@ subtitle: PUCRS
 author: "Guilherme Camargo Brito"
 date: "`r format(Sys.Date(), '%B %d, %Y')`"
 output:
-  pdf_document:
-    toc: yes
-    fig_caption: yes
-    keep_tex: yes
-    df: "kable"
   html_document:
     toc: yes
     df_print: "kable"
-editor_options: 
-  chunk_output_type: inline
+  pdf_document:
+    toc: yes
+    df: "kable"
+
 ---
 
-```{r setup, include=FALSE}
+```{r setup, include=FALSE, fig.margin = c(4, 4, 4, 4)}
 knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
 ```
 
@@ -26,13 +23,14 @@ knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
 
 Foram utilizados os seguintes métodos estatísticos:
 
--   Análise descritiva: média, mediana, desvio padrão, erro padrão e intervalo interquartil
+-   Análise descritiva: média, mediana, desvio padrão, erro padrão e intervalo interquartil.
 -   Teste de normalidade: Shapiro-Wilk para definição de uso de testes paramétricos ou não-paramétricos.
--   Análise de frequência: frequência absoluta e relativa
--   Análise de diferenças entre grupos: teste t de duas amostras de Welch (variáveis paramétricas) ou Mann-Whitney U (variáveis não-paramétricas)
+-   Análise de frequência: frequência absoluta e relativa.
+-   Análise de diferenças entre grupos: teste t de duas amostras de Welch (variáveis paramétricas) ou Mann-Whitney U (variáveis não-paramétricas).
 -   Análise de diferenças entre grupos de idade (\>=20 vs \<20 anos): Teste t de duas amostras de Welch (variáveis paramétricas) ou Mann-Whitney U (variáveis não-paramétricas).
 -   Cálculo de tamanho de efeito: Cohen's d (variáveis paramétricas) ou Coeficiente de correlação ponto-bisserial (variáveis não-paramétricas).
 -   Análise de correlações entre variáveis: correlação de Pearson (variáveis paramétricas) ou Spearman (variáveis não-paramétricas).
+-   Todas as análises consideraram um nível alfa de 5% (p.value = 0.05).
 
 ## Métodos
 
@@ -95,13 +93,13 @@ Aqui define-se uma função que aplica o teste de Shapiro-Wilk para verificar se
 shapiro <- function(data, vars) {
     data %>%
         select(all_of(vars)) %>%
-        gather(Variable, Value) %>%
-        group_by(Variable) %>%
+        gather(Variável, Valor) %>%
+        group_by(Variável) %>%
         summarise(
             n = n(),
-            shapiro_w = shapiro.test(Value)$statistic,
-            shapiro_p = shapiro.test(Value)$p.value,
-            normality = if_else(shapiro.test(Value)$p.value > p.value, "parametric", "non-parametric")
+            shapiro_w = shapiro.test(Valor)$statistic,
+            shapiro_p = shapiro.test(Valor)$p.value,
+            normality = if_else(shapiro.test(Valor)$p.value > p.value, "parametric", "non-parametric")
         )
 }
 ```
@@ -114,17 +112,17 @@ Aqui define-se a função que calcula as estatísticas descritivas para as vari�
 calc_stats <- function(data, vars) {
     data %>%
         select(all_of(vars)) %>%
-        gather(Variable, Value) %>%
-        group_by(Variable) %>%
+        gather(Variável, Valor) %>%
+        group_by(Variável) %>%
         summarise(
             n = n(),
-            missing = sum(is.na(Value)),
-            normality = if_else(shapiro.test(Value)$p.value > p.value, "parametric", "non-parametric"),
-            mean = mean(Value, na.rm = TRUE),
-            median = median(Value, na.rm = TRUE),
-            sd = sd(Value, na.rm = TRUE),
-            se = sd(Value, na.rm = TRUE) / sqrt(length(Value)),
-            iqr = IQR(Value, na.rm = TRUE)
+            missing = sum(is.na(Valor)),
+            normality = if_else(shapiro.test(Valor)$p.value > p.value, "parametric", "non-parametric"),
+            mean = mean(Valor, na.rm = TRUE),
+            median = median(Valor, na.rm = TRUE),
+            sd = sd(Valor, na.rm = TRUE),
+            se = sd(Valor, na.rm = TRUE) / sqrt(length(Valor)),
+            iqr = IQR(Valor, na.rm = TRUE)
         )
 }
 ```
@@ -137,14 +135,14 @@ Aqui calcula-se as frequências absoluta e relativa das variáveis categóricas 
 calc_freqs <- function(data, vars) {
     data %>%
         select(Grupo, all_of(vars)) %>%
-        gather(Variable, Value, -Grupo) %>%
-        count(Grupo, Variable, Value) %>%
-        group_by(Variable, Grupo) %>%
+        gather(Variável, Valor, -Grupo) %>%
+        count(Grupo, Variável, Valor) %>%
+        group_by(Variável, Grupo) %>%
         mutate(
             Freq_rel = n / sum(n),
             Freq_abs = n
         ) %>%
-        select(Variable, Value, Grupo, Freq_abs, Freq_rel)
+        select(Variável, Valor, Grupo, Freq_abs, Freq_rel)
 }
 ```
 
@@ -155,7 +153,7 @@ Aqui calcula-se as diferenças entre grupos e diferenças pelo efeito da idade, 
 ```{r group_differences}
 calc_diffs <- function(data, vars, normality, p.value, group_var) {
     map_df(vars, function(var) {
-        normality <- filter(normality, Variable == var)
+        normality <- filter(normality, Variável == var)
         is_normal <- normality$shapiro_p > p.value
         test_result <- if (is_normal) t.test(data[[var]] ~ data[[group_var]]) else wilcox.test(data[[var]] ~ data[[group_var]], conf.int = TRUE)
         effect_size <- if (is_normal) {
@@ -164,12 +162,12 @@ calc_diffs <- function(data, vars, normality, p.value, group_var) {
             biserial(data, var, group_var)
         }
         tibble(
-            Variable = var,
-            Test = test_result$method,
+            Variável = var,
+            Teste = test_result$method,
             df = ifelse(is_normal, test_result$parameter, NA),
-            Statistic = test_result$statistic,
-            p.value = test_result$p.value,
-            Significance = ifelse(test_result$p.value < p.value, "*", "-"),
+            Estatística = test_result$statistic,
+            p_value = test_result$p.value,
+            Significância = ifelse(test_result$p.value < p.value, "*", "-"),
             Effect_Size = effect_size,
             CI_min = test_result$conf.int[1],
             CI_max = test_result$conf.int[2]
@@ -217,75 +215,82 @@ Aqui calcula-se as correlações entre as variáveis de interesse: Idade, Dias_i
 calc_corrs <- function(data, vars, norms, p.value) {
     combn(vars, 2, simplify = FALSE) %>%
         map_df(function(pair) {
-            norms1 <- filter(norms, Variable == pair[1])
-            norms2 <- filter(norms, Variable == pair[2])
+            norms1 <- filter(norms, Variável == pair[1])
+            norms2 <- filter(norms, Variável == pair[2])
             is_normal <- norms1$shapiro_p > p.value & norms2$shapiro_p > p.value
             corr_result <- if (is_normal) cor.test(data[[pair[1]]], data[[pair[2]]], method = "pearson") else cor.test(data[[pair[1]]], data[[pair[2]]], method = "spearman")
             tibble(
-                Variable1 = pair[1],
-                Variable2 = pair[2],
-                Test = corr_result$method,
+                Variável1 = pair[1],
+                Variável2 = pair[2],
+                Teste = corr_result$method,
                 df = corr_result$parameter,
-                Correlation = corr_result$estimate,
-                p.value = corr_result$p.value,
-                Significance = ifelse(corr_result$p.value < p.value, "*", "-"),
-                corr_CI_lower = corr_result$conf.int[1],
-                corr_CI_upper = corr_result$conf.int[2]
+                Correlação = corr_result$estimate,
+                p_value = corr_result$p.value,
+                Significância = ifelse(corr_result$p.value < p.value, "*", "-"),
+                CI_lower = corr_result$conf.int[1],
+                CI_upper = corr_result$conf.int[2]
             )
         })
 }
 ```
 
+### Apresentação de dados
+Define uma função de formatação dos resultados em formato de tabela.
+
+```{r table_format}
+custom_kable <- function(table_data, ...) {
+    table_output <- kable(table_data, format = "markdown", ...) %>%
+        kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"), full_width = FALSE) %>%
+        row_spec(0, bold = TRUE, color = "white", background = "gray") %>%
+        column_spec(1:ncol(table_data), bold = TRUE)
+    return(table_output)
+}
+```
+
 ## Resultados
 
-> Abaixo seguem as tabelas com os resultados das análises descritas.
+Abaixo seguem as tabelas com os resultados das análises descritas.
 
 ### Teste de Normalidade
 
 ```{r normality_results, echo=FALSE}
 normality <- shapiro(data, unlist(targets[names(targets) != "freqs"], use.names = FALSE) %>% unique())
-normality
-kable(normality, format = "latex", booktabs = TRUE)
+custom_kable(normality, digits = 3)
 ```
 
 ### Estatísticas Descritivas
 
 ```{r descriptive_results, echo=FALSE}
 stats <- calc_stats(data, unlist(targets$stats))
-stats
-kable(stats, format = "latex", booktabs = TRUE)
+custom_kable(stats, digits = 1, align = "lcclrrrrr")
 ```
 
 ### Análise de Frequências
 
 ```{r categorical_freq_results, echo=FALSE}
 freq <- calc_freqs(data, unlist(targets$freq))
-freq
-kable(freq, format = "latex", booktabs = TRUE)
+custom_kable(freq, digits = 2)
 ```
 
 ### Diferenças entre Grupos
 
 ```{r group_diff_results, echo=FALSE}
 diffs <- calc_diffs(data, unlist(targets$diffs), normality, p.value, "Grupo")
-diffs
-kable(diffs, format = "latex", booktabs = TRUE)
+custom_kable(diffs, digits = 2)
 ```
 
 ### Diferenças pelo Efeito da Idade
 
 ```{r age_diff_results, echo=FALSE}
 age_diffs <- calc_diffs(data, unlist(targets$age_diffs), normality, p.value, "Categoria_Idade")
-age_diffs
-kable(age_diffs, format = "latex", booktabs = TRUE)
+custom_kable(age_diffs, digits = 2)
 ```
 
 ### Correlações entre Variáveis
 
 ```{r correlations_results, echo=FALSE}
 corrs <- calc_corrs(data, unlist(targets$corrs), normality, p.value)
-corrs
-kable(corrs, format = "latex", booktabs = TRUE)
+custom_kable(corrs, digits = 2)
 ```
 
 ## Exportação dos Resultados
@@ -300,7 +305,7 @@ data_list <- list(
     diffs,
     age_diffs,
     corrs,
-    filter(corrs, Variable1 == "DNA_corrigido15x")
+    filter(corrs, Variável1 == "DNA_corrigido15x")
 )
 
 data_file_names <- c(
@@ -335,4 +340,3 @@ Esse projeto, com o código R acima, assim como os dados associados podem ser ac
 ### Limitações:
 
 A análise ainda carece de toda a parte de visualização dos resultados e dos dados, a qual deveria incluir gráficos de barra, boxplot, matriz de correlação, entre outros.
-

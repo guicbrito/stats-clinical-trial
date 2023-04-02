@@ -1,4 +1,4 @@
-Variable,n,shapiro_w,shapiro_p,normality
+Variável,n,shapiro_w,shapiro_p,normality
 Altura_cm,16,0.9124994402678027,0.12768847767943992,parametric
 CVFpercprevist,16,0.8986457456575908,0.0764570332785253,parametric
 DNA_corrigido15x,16,0.9308451280548506,0.25141762624444974,parametric

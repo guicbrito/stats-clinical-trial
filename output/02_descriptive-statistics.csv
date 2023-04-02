@@ -1,4 +1,4 @@
-Variable,n,missing,normality,mean,median,sd,se,iqr
+Variável,n,missing,normality,mean,median,sd,se,iqr
 Altura_cm,16,0,parametric,158.95,163,19.13819914899693,4.784549787249232,21.25
 CVFpercprevist,16,0,parametric,65.05437500000001,53.255,25.381572835096986,6.345393208774246,42.54999999999999
 DNA_corrigido15x,16,0,parametric,305.345625,334,167.0524102577292,41.7631025644323,252.88
