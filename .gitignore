@@ -3,3 +3,6 @@
 .RData
 .Ruserdata
 **/*.Rproj
+**/*.pdf
+**/output/*
+output/01_normality-tests.csv
