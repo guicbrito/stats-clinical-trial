@@ -3,8 +3,6 @@
 .RData
 .Ruserdata
 **/*.Rproj
-**/*.pdf
-**/output/*
 **/*.docx
 **/*_cache
 **/*.aux
